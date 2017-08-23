@@ -1,0 +1,9 @@
+build*
+.build*
+.vscode
+.vs
+*.user
+*.sqlite
+*.json
+*.suo
+*.db
