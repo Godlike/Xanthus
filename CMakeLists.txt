@@ -5,18 +5,29 @@
 cmake_minimum_required(VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
-project(Xanthus)
+project(XanthusProject)
 
-find_package(UnicornRender REQUIRED)
-# find_package(PegasusPhysics REQUIRED)
-
-include_directories(SYSTEM ${Unicorn_INCLUDE_DIRS} ${Pegasus_INCLUDE_DIRS})
-link_directories(${Unicorn_LIBRARY_DIRS} ${Pegasus_LIBRARY_DIRS})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
 
 if (UNIX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif ()
 
-add_executable(${PROJECT_NAME} main.cpp Application.cpp)
+if (UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Werror -pedantic")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O3")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb3 -O0")
+elseif(WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14 /MP /W3") # TODO set WX (warning as error)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
 
-target_link_libraries(${PROJECT_NAME} ${Unicorn_LIB} ${Pegasus_LIB})
+set(XANTHUS_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/source)
+
+add_subdirectory(${XANTHUS_ROOT})
+
+enable_testing()
+set(CATCH_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/Catch)
+add_subdirectory(test)

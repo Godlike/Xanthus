@@ -1,0 +1,52 @@
+#ifndef XANTHUS_ENTITY_ENTITY_IMP
+#define XANTHUS_ENTITY_ENTITY_IMP
+
+#include "entity/Entity.hpp"
+
+#include "util/TemplateCounter.hpp"
+
+namespace xanthus
+{
+namespace entity
+{
+
+template<class C, typename... Args>
+    C& Entity::AddComponent(Args&&... args)
+{
+    const std::size_t componentId = util::TemplateCounter<Component>::GetId<C>();
+
+    C* pComponent = new C(std::forward<Args>(args)...);
+
+    AddComponentImpl(pComponent, componentId);
+
+    return *pComponent;
+}
+
+template<class C>
+    C& Entity::GetComponent() const
+{
+    const std::size_t componentId = util::TemplateCounter<Component>::GetId<C>();
+
+    return static_cast<C&>(GetComponentImpl(componentId));
+}
+
+template<class C>
+    bool Entity::HasComponent() const
+{
+    const std::size_t componentId = util::TemplateCounter<Component>::GetId<C>();
+
+    return HasComponentImpl(componentId);
+}
+
+template<class C>
+    void Entity::DeleteComponent()
+{
+    const std::size_t componentId = util::TemplateCounter<Component>::GetId<C>();
+
+    DeleteComponentImpl(componentId);
+}
+
+}
+}
+
+#endif // XANTHUS_ENTITY_ENTITY_IMP

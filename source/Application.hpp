@@ -1,5 +1,5 @@
-#ifndef SLEIPNIR_APPLICATION_HPP
-#define SLEIPNIR_APPLICATION_HPP
+#ifndef XANTHUS_APPLICATION_HPP
+#define XANTHUS_APPLICATION_HPP
 
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
@@ -58,4 +58,4 @@ private:
     std::list<MeshDescriptor*> m_worldObjects;
 };
 
-#endif // SLEIPNIR_APPLICATION_HPP
+#endif // XANTHUS_APPLICATION_HPP
