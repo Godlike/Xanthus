@@ -30,7 +30,7 @@ TEST_CASE("Checking component in empty entity", "[empty]")
     REQUIRE(false == test.HasComponent<DummyComponent>());
 }
 
-TEST_CASE("Add and delete component", "[general]")
+TEST_CASE("Add and delete components", "[general]")
 {
     World world;
     Entity test = world.CreateEntity();

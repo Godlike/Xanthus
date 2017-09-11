@@ -1,6 +1,8 @@
 #ifndef XANTHUS_ENTITY_ENTITY_POOL_HPP
 #define XANTHUS_ENTITY_ENTITY_POOL_HPP
 
+#include "component/Flags.hpp"
+
 #include "util/Config.hpp"
 #include "util/Types.hpp"
 
@@ -38,7 +40,6 @@ public:
 
 private:
     typedef std::array<ComponentPtr, util::Config::MaxComponentCount> ComponentArray;
-    typedef std::bitset<util::Config::MaxComponentCount> ComponentFlags;
 
     void EnsureCapacity(std::size_t count);
 
@@ -46,7 +47,7 @@ private:
     std::vector<ComponentArray> m_entityComponents;
 
     //! Holds component flags for all entities
-    std::vector<ComponentFlags> m_entityComponentFlags;
+    std::vector<component::Flags> m_entityComponentFlags;
 
     //! Holds all alive entities
     std::vector<EntityId> m_entities;

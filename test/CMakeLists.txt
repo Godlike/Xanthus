@@ -21,6 +21,11 @@ set(ENTITY_SOURCES
     ${XANTHUS_ROOT}/entity/World.hpp
 )
 
+set(COMPONENT_SOURCES
+    ${XANTHUS_ROOT}/component/Flags.hpp
+    ${XANTHUS_ROOT}/component/Flags.imp
+)
+
 set(UTIL_SOURCES
     ${XANTHUS_ROOT}/util/Config.hpp
     ${XANTHUS_ROOT}/util/TemplateCounter.hpp
@@ -29,40 +34,45 @@ set(UTIL_SOURCES
 
 function(xanthus_add_test)
     set(options )
-    set(oneValueArgs NAME TEST_NAME)
+    set(oneValueArgs NAME)
     set(multiValueArgs SOURCE ARGS)
     cmake_parse_arguments(
         xanthus_add_test
         "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
     )
 
+    set(EXEC_NAME "${xanthus_add_test_NAME}Test")
+
     add_executable(
-        ${xanthus_add_test_NAME}
+        ${EXEC_NAME}
         ${xanthus_add_test_SOURCE}
     )
 
     add_test(
-        NAME ${xanthus_add_test_TEST_NAME}
-        COMMAND ${xanthus_add_test_NAME} ${xanthus_add_test_ARGS}
+        NAME ${xanthus_add_test_NAME}
+        COMMAND ${EXEC_NAME} ${xanthus_add_test_ARGS}
     )
 endfunction()
 
-xanthus_add_test(NAME TemplateCounterTest
-    TEST_NAME TemplateCounter
+xanthus_add_test(NAME TemplateCounter
     SOURCE TemplateCounterTest.cpp
         ${UTIL_SOURCES}
 )
 
-xanthus_add_test(NAME EntityPoolTest
-    TEST_NAME EntityPool
+xanthus_add_test(NAME ComponentFlags
+    SOURCE ComponentFlagsTest.cpp
+        ${COMPONENT_SOURCES}
+        ${UTIL_SOURCES}
+)
+
+xanthus_add_test(NAME EntityPool
     SOURCE EntityPoolTest.cpp
         ${ENTITY_SOURCES}
         ${COMPONENT_SOURCES}
         ${UTIL_SOURCES}
 )
 
-xanthus_add_test(NAME EntityTest
-    TEST_NAME Entity
+xanthus_add_test(NAME Entity
     SOURCE EntityTest.cpp
         ${ENTITY_SOURCES}
         ${UTIL_SOURCES}

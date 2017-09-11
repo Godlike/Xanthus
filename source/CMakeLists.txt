@@ -27,6 +27,11 @@ set(ENTITY_SOURCES
     entity/World.hpp
 )
 
+set(COMPONENT_SOURCES
+    component/Flags.hpp
+    component/Flags.imp
+)
+
 set(UTIL_SOURCES
     util/Config.hpp
     util/TemplateCounter.hpp

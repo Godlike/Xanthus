@@ -86,7 +86,7 @@ void EntityPool::EntityAddComponent(EntityId entityId
     assert(util::Config::MaxComponentCount > componentId);
 
     m_entityComponents[entityId][componentId].reset(pComponent);
-    m_entityComponentFlags[entityId].set(componentId);
+    m_entityComponentFlags[entityId].Set(componentId);
 }
 
 Component& EntityPool::EntityGetComponent(EntityId entityId, std::size_t componentId) const
@@ -104,7 +104,7 @@ bool EntityPool::EntityHasComponent(EntityId entityId, std::size_t componentId) 
     assert(InvalidEntityId != m_entities[entityId]);
     assert(util::Config::MaxComponentCount > componentId);
 
-    return m_entityComponentFlags[entityId][componentId];
+    return m_entityComponentFlags[entityId].Test(componentId);
 }
 
 void EntityPool::EntityDeleteComponent(EntityId entityId, std::size_t componentId)
@@ -114,7 +114,7 @@ void EntityPool::EntityDeleteComponent(EntityId entityId, std::size_t componentI
     assert(util::Config::MaxComponentCount > componentId);
 
     m_entityComponents[entityId][componentId].reset(nullptr);
-    m_entityComponentFlags[entityId].reset(componentId);
+    m_entityComponentFlags[entityId].Reset(componentId);
 }
 
 void EntityPool::EntityDeleteComponents(EntityId entityId)
