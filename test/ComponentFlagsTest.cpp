@@ -176,6 +176,28 @@ SCENARIO("Resetting flags", "[general]")
             }
         }
     }
+
+    GIVEN("two sets")
+    {
+        Flags flagsA;
+        Flags flagsB;
+
+        WHEN("same flags are set in different ways and order")
+        {
+            flagsA.Set<ComponentA>();
+            flagsA.Set<ComponentB>();
+
+            flagsB.Set<ComponentB, ComponentA>();
+
+            THEN("they are equal in all ways")
+            {
+                REQUIRE(true == flagsA.PartialMatch(flagsB));
+                REQUIRE(true == flagsA.FullMatch(flagsB));
+
+                REQUIRE(flagsA == flagsB);
+            }
+        }
+    }
 }
 
 SCENARIO("Comparing flags", "[general]")
