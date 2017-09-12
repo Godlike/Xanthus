@@ -23,8 +23,6 @@ TEST_CASE("Set and test", "[basic]")
     Flags flags;
     Flags inlineFlags;
 
-    REQUIRE(true == flags.None());
-
     SECTION("one component")
     {
         flags.Set<ComponentA>();
@@ -113,71 +111,6 @@ TEST_CASE("Reset and test", "[basic]")
     }
 }
 
-TEST_CASE("Compare", "[basic]")
-{
-    Flags flagsA;
-    Flags flagsB;
-
-    SECTION("empty sets")
-    {
-        REQUIRE(true == flagsA.FullMatch(flagsB));
-    }
-
-    SECTION("equal sets")
-    {
-        flagsA.Set<ComponentA>();
-        flagsB.Set<ComponentA>();
-
-        REQUIRE(flagsA == flagsB);
-        REQUIRE(flagsB == flagsA);
-
-        REQUIRE(true == flagsA.FullMatch(flagsB));
-        REQUIRE(true == flagsB.FullMatch(flagsA));
-
-        REQUIRE(true == flagsA.PartialMatch(flagsB));
-        REQUIRE(true == flagsB.PartialMatch(flagsA));
-    }
-
-    SECTION("full match")
-    {
-        flagsA.Set<ComponentA>();
-        flagsB.Set<ComponentA, ComponentB>();
-
-        REQUIRE(true == flagsA.FullMatch(flagsB));
-        REQUIRE(false == flagsB.FullMatch(flagsA));
-
-        REQUIRE(true == flagsA.PartialMatch(flagsB));
-        REQUIRE(true == flagsB.PartialMatch(flagsA));
-    }
-
-    SECTION("partial match")
-    {
-        flagsA.Set<ComponentC, ComponentA>();
-        flagsB.Set<ComponentA, ComponentB>();
-
-        REQUIRE(false == flagsA.FullMatch(flagsB));
-        REQUIRE(false == flagsB.FullMatch(flagsA));
-
-        REQUIRE(true == flagsA.PartialMatch(flagsB));
-        REQUIRE(true == flagsB.PartialMatch(flagsA));
-    }
-
-    SECTION("completely different sets")
-    {
-        flagsA.Set<ComponentA>();
-        flagsB.Set<ComponentB>();
-
-        REQUIRE(false == flagsA.FullMatch(flagsB));
-        REQUIRE(false == flagsB.FullMatch(flagsA));
-
-        REQUIRE(false == flagsA.PartialMatch(flagsB));
-        REQUIRE(false == flagsB.PartialMatch(flagsA));
-
-        REQUIRE(flagsA != flagsB);
-        REQUIRE(flagsB != flagsA);
-    }
-}
-
 TEST_CASE("Copy and assignment", "[basic]")
 {
     Flags flagsA;
@@ -240,6 +173,135 @@ SCENARIO("Resetting flags", "[general]")
             {
                 REQUIRE(false == flags.Test<ComponentB>());
                 REQUIRE(true == flags.Test<ComponentA>());
+            }
+        }
+    }
+}
+
+SCENARIO("Comparing flags", "[general]")
+{
+    GIVEN("two sets")
+    {
+        Flags flagsA;
+        Flags flagsB;
+
+        WHEN("both are empty")
+        {
+            THEN("they are equal in all ways")
+            {
+                REQUIRE(true == flagsA.PartialMatch(flagsB));
+                REQUIRE(true == flagsA.FullMatch(flagsB));
+
+                REQUIRE(flagsA == flagsB);
+            }
+        }
+
+        WHEN("one of them is empty")
+        {
+            flagsA.Set<ComponentA>();
+
+            THEN("they are different")
+            {
+                REQUIRE(flagsA != flagsB);
+                REQUIRE(flagsB != flagsA);
+            }
+            AND_THEN("they are matching from empty POV")
+            {
+                REQUIRE(true == flagsB.PartialMatch(flagsA));
+                REQUIRE(true == flagsB.FullMatch(flagsA));
+            }
+            AND_THEN("they are not matching from non-empty POV")
+            {
+                REQUIRE(false == flagsA.PartialMatch(flagsB));
+                REQUIRE(false == flagsA.FullMatch(flagsB));
+            }
+        }
+
+        WHEN("they have the same component")
+        {
+            flagsA.Set<ComponentA>();
+            flagsB.Set<ComponentA>();
+
+            THEN("they are equal in all ways")
+            {
+                REQUIRE(true == flagsA.PartialMatch(flagsB));
+                REQUIRE(true == flagsA.FullMatch(flagsB));
+
+                REQUIRE(flagsA == flagsB);
+            }
+        }
+
+        WHEN("they have the same components")
+        {
+            flagsA.Set<ComponentA, ComponentB>();
+            flagsB.Set<ComponentB, ComponentA>();
+
+            THEN("they are equal in all ways")
+            {
+                REQUIRE(true == flagsA.PartialMatch(flagsB));
+                REQUIRE(true == flagsA.FullMatch(flagsB));
+
+                REQUIRE(flagsA == flagsB);
+            }
+        }
+
+        WHEN("one has all components of the other")
+        {
+            flagsA.Set<ComponentA>();
+            flagsB.Set<ComponentA, ComponentB>();
+
+            THEN("they are not equal")
+            {
+                REQUIRE(flagsA != flagsB);
+            }
+            AND_THEN("smaller one is matched by the bigger one")
+            {
+                REQUIRE(true == flagsA.PartialMatch(flagsB));
+                REQUIRE(true == flagsA.FullMatch(flagsB));
+            }
+            AND_THEN("bigger one is only partially matched by the smaller one")
+            {
+                REQUIRE(true == flagsB.PartialMatch(flagsA));
+                REQUIRE(false == flagsB.FullMatch(flagsA));
+            }
+        }
+
+        WHEN("their flags are intersecting")
+        {
+            flagsA.Set<ComponentC, ComponentA>();
+            flagsB.Set<ComponentA, ComponentB>();
+
+            THEN("they are not equal")
+            {
+                REQUIRE(flagsA != flagsB);
+            }
+            AND_THEN("they don't fully match either way")
+            {
+                REQUIRE(false == flagsA.FullMatch(flagsB));
+                REQUIRE(false == flagsB.FullMatch(flagsA));
+            }
+            AND_THEN("they partially match each other")
+            {
+                REQUIRE(true == flagsA.PartialMatch(flagsB));
+                REQUIRE(true == flagsB.PartialMatch(flagsA));
+            }
+        }
+
+        WHEN("they are different")
+        {
+            flagsA.Set<ComponentA>();
+            flagsB.Set<ComponentB>();
+
+            THEN("they are different in all ways")
+            {
+                REQUIRE(false == flagsA.PartialMatch(flagsB));
+                REQUIRE(false == flagsB.PartialMatch(flagsA));
+
+                REQUIRE(false == flagsA.FullMatch(flagsB));
+                REQUIRE(false == flagsB.FullMatch(flagsA));
+
+                REQUIRE(flagsA != flagsB);
+                REQUIRE(flagsB != flagsA);
             }
         }
     }

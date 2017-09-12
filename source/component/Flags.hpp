@@ -51,13 +51,15 @@ public:
 
     /** @brief  Checks if there is intersection of flags with @p other
      *
-     *  If both flag sets are empty, returns @c false
-     *
      *  @param  other   rhs
      *
-     *  @return @c true if there is intersection in set flags with @p other, @c false otherwise
+     *  @return @c true if @p m_flags are empty or there is intersection in set flags with
+     *          @p other, @c false otherwise
      */
-    bool PartialMatch(Flags const& other) const { return (m_flags & other.m_flags).any(); }
+    bool PartialMatch(Flags const& other) const
+    {
+        return m_flags.none() || (m_flags & other.m_flags).any();
+    }
 
     /** @brief  Sets flag for given ID
      *
