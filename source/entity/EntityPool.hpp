@@ -6,7 +6,6 @@
 #include "util/Config.hpp"
 #include "util/Types.hpp"
 
-#include <bitset>
 #include <vector>
 #include <queue>
 
@@ -18,12 +17,16 @@ namespace entity
 class EntityPool
 {
 public:
+    using ComponentCollection = std::vector<EntityId>;
+
     EntityPool();
     ~EntityPool() = default;
 
     EntityId CreateEntity();
-    std::vector<EntityId> CreateEntities(std::size_t count);
+    ComponentCollection CreateEntities(std::size_t count);
     void DeleteEntity(EntityId entity);
+
+    ComponentCollection MatchEntities(component::Flags query) const;
 
     bool EntityIsValid(EntityId entity) const;
 
@@ -50,7 +53,7 @@ private:
     std::vector<component::Flags> m_entityComponentFlags;
 
     //! Holds all alive entities
-    std::vector<EntityId> m_entities;
+    ComponentCollection m_entities;
 
     //! Holds all free entities
     std::queue<EntityId> m_freeEntities;

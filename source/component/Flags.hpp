@@ -18,8 +18,8 @@ public:
     Flags(Flags const& other) = default;
     Flags& operator=(Flags const& other) = default;
 
-    Flags(Flags&& other) = delete;
-    Flags& operator=(Flags&& other) = delete;
+    Flags(Flags&& other) = default;
+    Flags& operator=(Flags&& other) = default;
 
     ~Flags() = default;
 

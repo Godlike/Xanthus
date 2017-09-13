@@ -5,9 +5,12 @@
 
 using namespace xanthus::component;
 
-struct ComponentA : public xanthus::Component {};
-struct ComponentB : public xanthus::Component {};
-struct ComponentC : public xanthus::Component {};
+namespace
+{
+    struct ComponentA : public xanthus::Component {};
+    struct ComponentB : public xanthus::Component {};
+    struct ComponentC : public xanthus::Component {};
+}
 
 TEST_CASE("Dummy", "[empty]")
 {

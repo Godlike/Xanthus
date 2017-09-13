@@ -8,10 +8,13 @@
 
 #include <cstdint>
 
-struct DummyComponent : public xanthus::Component
+namespace
 {
-    bool flag = false;
-};
+    struct DummyComponent : public xanthus::Component
+    {
+        bool flag = false;
+    };
+}
 
 using namespace xanthus::entity;
 

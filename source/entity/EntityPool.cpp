@@ -36,9 +36,9 @@ EntityId EntityPool::CreateEntity()
     return id;
 }
 
-std::vector<EntityId> EntityPool::CreateEntities(std::size_t count)
+EntityPool::ComponentCollection EntityPool::CreateEntities(std::size_t count)
 {
-    std::vector<EntityId> result;
+    ComponentCollection result;
     result.reserve(count);
 
     EnsureCapacity(count);
@@ -69,6 +69,21 @@ void EntityPool::DeleteEntity(EntityId entityId)
 
     m_entities[entityId] = InvalidEntityId;
     m_freeEntities.push(entityId);
+}
+
+EntityPool::ComponentCollection EntityPool::MatchEntities(component::Flags query) const
+{
+    ComponentCollection result;
+
+    for (EntityId const& id : m_entities)
+    {
+        if (query.IsSubset(m_entityComponentFlags[id]))
+        {
+            result.push_back(id);
+        }
+    }
+
+    return result;
 }
 
 bool EntityPool::EntityIsValid(EntityId entityId) const
