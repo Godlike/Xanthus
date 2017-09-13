@@ -41,24 +41,24 @@ public:
     /** @brief  Resets all flags */
     void Clear() { m_flags.reset(); }
 
-    /** @brief  Checks if all flags from @p this are set in @p other
+    /** @brief  Checks if all set flags from @p this are set in @p other
      *
      *  @param  other   rhs
      *
-     *  @return @c true if all flags in @p m_flags are set in @p other, @c false otherwise
+     *  @return @c true if all set flags in @p m_flags are set in @p other, @c false otherwise
      */
-    bool FullMatch(Flags const& other) const { return (m_flags & other.m_flags) == m_flags; }
+    bool IsSubset(Flags const& other) const { return (m_flags & other.m_flags) == m_flags; }
 
     /** @brief  Checks if there is intersection of flags with @p other
      *
      *  @param  other   rhs
      *
-     *  @return @c true if @p m_flags are empty or there is intersection in set flags with
-     *          @p other, @c false otherwise
+     *  @return @c true if there is a non-empty intersection in set flags with @p other,
+     *          @c false otherwise
      */
-    bool PartialMatch(Flags const& other) const
+    bool Intersects(Flags const& other) const
     {
-        return m_flags.none() || (m_flags & other.m_flags).any();
+        return (m_flags & other.m_flags).any();
     }
 
     /** @brief  Sets flag for given ID

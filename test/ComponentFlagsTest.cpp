@@ -54,9 +54,9 @@ TEST_CASE("Set and test", "[basic]")
 
         REQUIRE(true == flags.None());
 
-        flags.Set<ComponentA, ComponentA>();
+        inlineFlags.Set<ComponentA, ComponentA>();
 
-        REQUIRE(true == flags.Test<ComponentA>());
+        REQUIRE(true == inlineFlags.Test<ComponentA>());
     }
 }
 
@@ -119,18 +119,19 @@ TEST_CASE("Copy and assignment", "[basic]")
     SECTION("copy")
     {
         Flags flagsB(flagsA);
-        REQUIRE(true == flagsA.FullMatch(flagsB));
+
+        REQUIRE(flagsA == flagsB);
     }
 
     SECTION("assignment")
     {
         Flags flagsB;
 
-        REQUIRE(false == flagsA.PartialMatch(flagsB));
+        REQUIRE(flagsA != flagsB);
 
         flagsB = flagsA;
 
-        REQUIRE(true == flagsA.FullMatch(flagsB));
+        REQUIRE(flagsA == flagsB);
     }
 }
 
@@ -157,6 +158,23 @@ SCENARIO("Setting flags", "[general]")
 
 SCENARIO("Resetting flags", "[general]")
 {
+    GIVEN("no flags are set")
+    {
+        Flags flags;
+
+        REQUIRE(true == flags.None());
+
+        WHEN("some flag is reset")
+        {
+            flags.Reset<ComponentA>();
+
+            THEN("nothing happens")
+            {
+                REQUIRE(true == flags.None());
+            }
+        }
+    }
+
     GIVEN("some flag is set")
     {
         Flags flags;
@@ -171,8 +189,8 @@ SCENARIO("Resetting flags", "[general]")
 
             THEN("nothing happens")
             {
-                REQUIRE(false == flags.Test<ComponentB>());
                 REQUIRE(true == flags.Test<ComponentA>());
+                REQUIRE(false == flags.Test<ComponentB>());
             }
         }
     }
@@ -182,7 +200,7 @@ SCENARIO("Resetting flags", "[general]")
         Flags flagsA;
         Flags flagsB;
 
-        WHEN("same flags are set in different ways and order")
+        WHEN("same flags are set in different ways/order")
         {
             flagsA.Set<ComponentA>();
             flagsA.Set<ComponentB>();
@@ -191,8 +209,8 @@ SCENARIO("Resetting flags", "[general]")
 
             THEN("they are equal in all ways")
             {
-                REQUIRE(true == flagsA.PartialMatch(flagsB));
-                REQUIRE(true == flagsA.FullMatch(flagsB));
+                REQUIRE(true == flagsA.Intersects(flagsB));
+                REQUIRE(true == flagsA.IsSubset(flagsB));
 
                 REQUIRE(flagsA == flagsB);
             }
@@ -209,10 +227,10 @@ SCENARIO("Comparing flags", "[general]")
 
         WHEN("both are empty")
         {
-            THEN("they are equal in all ways")
+            THEN("they are equal but are not intersecting")
             {
-                REQUIRE(true == flagsA.PartialMatch(flagsB));
-                REQUIRE(true == flagsA.FullMatch(flagsB));
+                REQUIRE(false == flagsA.Intersects(flagsB));
+                REQUIRE(true == flagsA.IsSubset(flagsB));
 
                 REQUIRE(flagsA == flagsB);
             }
@@ -226,42 +244,43 @@ SCENARIO("Comparing flags", "[general]")
             {
                 REQUIRE(flagsA != flagsB);
                 REQUIRE(flagsB != flagsA);
+
+                REQUIRE(false == flagsA.Intersects(flagsB));
+                REQUIRE(false == flagsB.Intersects(flagsA));
             }
-            AND_THEN("they are matching from empty POV")
+            AND_THEN("empty is a subset of non-empty")
             {
-                REQUIRE(true == flagsB.PartialMatch(flagsA));
-                REQUIRE(true == flagsB.FullMatch(flagsA));
+                REQUIRE(true == flagsB.IsSubset(flagsA));
             }
-            AND_THEN("they are not matching from non-empty POV")
+            AND_THEN("non-empty is not a subset of empty")
             {
-                REQUIRE(false == flagsA.PartialMatch(flagsB));
-                REQUIRE(false == flagsA.FullMatch(flagsB));
+                REQUIRE(false == flagsA.IsSubset(flagsB));
             }
         }
 
-        WHEN("they have the same component")
+        WHEN("they have the same one component")
         {
             flagsA.Set<ComponentA>();
             flagsB.Set<ComponentA>();
 
             THEN("they are equal in all ways")
             {
-                REQUIRE(true == flagsA.PartialMatch(flagsB));
-                REQUIRE(true == flagsA.FullMatch(flagsB));
+                REQUIRE(true == flagsA.Intersects(flagsB));
+                REQUIRE(true == flagsA.IsSubset(flagsB));
 
                 REQUIRE(flagsA == flagsB);
             }
         }
 
-        WHEN("they have the same components")
+        WHEN("they have the same multiple components")
         {
             flagsA.Set<ComponentA, ComponentB>();
             flagsB.Set<ComponentB, ComponentA>();
 
             THEN("they are equal in all ways")
             {
-                REQUIRE(true == flagsA.PartialMatch(flagsB));
-                REQUIRE(true == flagsA.FullMatch(flagsB));
+                REQUIRE(true == flagsA.Intersects(flagsB));
+                REQUIRE(true == flagsA.IsSubset(flagsB));
 
                 REQUIRE(flagsA == flagsB);
             }
@@ -276,19 +295,19 @@ SCENARIO("Comparing flags", "[general]")
             {
                 REQUIRE(flagsA != flagsB);
             }
-            AND_THEN("smaller one is matched by the bigger one")
+            AND_THEN("smaller one is a subset of the bigger one")
             {
-                REQUIRE(true == flagsA.PartialMatch(flagsB));
-                REQUIRE(true == flagsA.FullMatch(flagsB));
+                REQUIRE(true == flagsA.Intersects(flagsB));
+                REQUIRE(true == flagsA.IsSubset(flagsB));
             }
-            AND_THEN("bigger one is only partially matched by the smaller one")
+            AND_THEN("bigger one only intersects the smaller one")
             {
-                REQUIRE(true == flagsB.PartialMatch(flagsA));
-                REQUIRE(false == flagsB.FullMatch(flagsA));
+                REQUIRE(true == flagsB.Intersects(flagsA));
+                REQUIRE(false == flagsB.IsSubset(flagsA));
             }
         }
 
-        WHEN("their flags are intersecting")
+        WHEN("their components intersect")
         {
             flagsA.Set<ComponentC, ComponentA>();
             flagsB.Set<ComponentA, ComponentB>();
@@ -297,30 +316,30 @@ SCENARIO("Comparing flags", "[general]")
             {
                 REQUIRE(flagsA != flagsB);
             }
-            AND_THEN("they don't fully match either way")
+            AND_THEN("they are not a subset of each other")
             {
-                REQUIRE(false == flagsA.FullMatch(flagsB));
-                REQUIRE(false == flagsB.FullMatch(flagsA));
+                REQUIRE(false == flagsA.IsSubset(flagsB));
+                REQUIRE(false == flagsB.IsSubset(flagsA));
             }
-            AND_THEN("they partially match each other")
+            AND_THEN("they intersect each other")
             {
-                REQUIRE(true == flagsA.PartialMatch(flagsB));
-                REQUIRE(true == flagsB.PartialMatch(flagsA));
+                REQUIRE(true == flagsA.Intersects(flagsB));
+                REQUIRE(true == flagsB.Intersects(flagsA));
             }
         }
 
-        WHEN("they are different")
+        WHEN("they have different components")
         {
             flagsA.Set<ComponentA>();
             flagsB.Set<ComponentB>();
 
             THEN("they are different in all ways")
             {
-                REQUIRE(false == flagsA.PartialMatch(flagsB));
-                REQUIRE(false == flagsB.PartialMatch(flagsA));
+                REQUIRE(false == flagsA.Intersects(flagsB));
+                REQUIRE(false == flagsB.Intersects(flagsA));
 
-                REQUIRE(false == flagsA.FullMatch(flagsB));
-                REQUIRE(false == flagsB.FullMatch(flagsA));
+                REQUIRE(false == flagsA.IsSubset(flagsB));
+                REQUIRE(false == flagsB.IsSubset(flagsA));
 
                 REQUIRE(flagsA != flagsB);
                 REQUIRE(flagsB != flagsA);
