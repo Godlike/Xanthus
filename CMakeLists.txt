@@ -7,6 +7,9 @@ cmake_policy(VERSION 3.0)
 
 project(XanthusProject)
 
+option(XANTHUS_BUILD_TESTS "Build tests" ON)
+option(XANTHUS_VERBOSE_TESTS "Verbose test output" ON)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
@@ -28,6 +31,8 @@ set(XANTHUS_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
 add_subdirectory(${XANTHUS_ROOT})
 
-enable_testing()
-set(CATCH_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/Catch)
-add_subdirectory(test)
+if (${XANTHUS_BUILD_TESTS})
+    enable_testing()
+    set(CATCH_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/Catch)
+    add_subdirectory(test)
+endif()

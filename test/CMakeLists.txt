@@ -43,6 +43,12 @@ function(xanthus_add_test)
 
     set(EXEC_NAME "${xanthus_add_test_NAME}Test")
 
+    if(${XANTHUS_VERBOSE_TESTS})
+        set(xanthus_add_test_ARGS ${xanthus_add_test_ARGS} -s)
+    endif()
+
+    set(xanthus_add_test_ARGS ${xanthus_add_test_ARGS} -o TestReport_${EXEC_NAME}.txt)
+
     add_executable(
         ${EXEC_NAME}
         ${xanthus_add_test_SOURCE}
