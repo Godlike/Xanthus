@@ -17,16 +17,17 @@ namespace entity
 class EntityPool
 {
 public:
-    using ComponentCollection = std::vector<EntityId>;
+    using EntityCollection = std::vector<EntityId>;
 
     EntityPool();
     ~EntityPool() = default;
 
     EntityId CreateEntity();
-    ComponentCollection CreateEntities(std::size_t count);
+    EntityCollection CreateEntities(std::size_t count);
     void DeleteEntity(EntityId entity);
+    void DeleteEntities(EntityCollection const& entities);
 
-    ComponentCollection MatchEntities(component::Flags query) const;
+    EntityCollection MatchEntities(component::Flags query) const;
 
     bool EntityIsValid(EntityId entity) const;
 
@@ -53,7 +54,7 @@ private:
     std::vector<component::Flags> m_entityComponentFlags;
 
     //! Holds all alive entities
-    ComponentCollection m_entities;
+    EntityCollection m_entities;
 
     //! Holds all free entities
     std::queue<EntityId> m_freeEntities;

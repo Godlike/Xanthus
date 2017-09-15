@@ -36,9 +36,9 @@ EntityId EntityPool::CreateEntity()
     return id;
 }
 
-EntityPool::ComponentCollection EntityPool::CreateEntities(std::size_t count)
+EntityPool::EntityCollection EntityPool::CreateEntities(std::size_t count)
 {
-    ComponentCollection result;
+    EntityCollection result;
     result.reserve(count);
 
     EnsureCapacity(count);
@@ -47,14 +47,19 @@ EntityPool::ComponentCollection EntityPool::CreateEntities(std::size_t count)
 
     while (!m_freeEntities.empty() && entityCount++ < count)
     {
-        result.push_back(m_freeEntities.front());
+        const EntityId id = m_freeEntities.front();
         m_freeEntities.pop();
+
+        result.push_back(id);
+        m_entities[id] = id;
     }
 
     while (entityCount++ < count)
     {
-        result.push_back(m_entities.size());
-        m_entities.push_back(m_entities.size());
+        const EntityId id = m_entities.size();
+
+        result.push_back(id);
+        m_entities.push_back(id);
     }
 
     return result;
@@ -71,9 +76,17 @@ void EntityPool::DeleteEntity(EntityId entityId)
     m_freeEntities.push(entityId);
 }
 
-EntityPool::ComponentCollection EntityPool::MatchEntities(component::Flags query) const
+void EntityPool::DeleteEntities(EntityCollection const& entities)
 {
-    ComponentCollection result;
+    for (auto const& entityId : entities)
+    {
+        DeleteEntity(entityId);
+    }
+}
+
+EntityPool::EntityCollection EntityPool::MatchEntities(component::Flags query) const
+{
+    EntityCollection result;
 
     for (EntityId const& id : m_entities)
     {
@@ -88,7 +101,7 @@ EntityPool::ComponentCollection EntityPool::MatchEntities(component::Flags query
 
 bool EntityPool::EntityIsValid(EntityId entityId) const
 {
-    return m_entities.size() >= entityId && InvalidEntityId != m_entities[entityId];
+    return m_entities.size() > entityId && InvalidEntityId != m_entities[entityId];
 }
 
 void EntityPool::EntityAddComponent(EntityId entityId
@@ -141,6 +154,8 @@ void EntityPool::EntityDeleteComponents(EntityId entityId)
     {
         ptr.reset(nullptr);
     }
+
+    m_entityComponentFlags[entityId].Clear();
 }
 
 void EntityPool::EnsureCapacity(std::size_t count)
