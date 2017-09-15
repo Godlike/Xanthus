@@ -193,7 +193,7 @@ SCENARIO("Matching entities", "[general]")
                 }
             }
         }
-        AND_WHEN("one component is matched")
+        AND_WHEN("one component is queried")
         {
             Flags query;
             query.Set(0);
@@ -211,7 +211,7 @@ SCENARIO("Matching entities", "[general]")
                 REQUIRE(7 == matched[2]);
             }
         }
-        AND_WHEN("multiple components are matched")
+        AND_WHEN("multiple components are queried")
         {
             Flags query;
             query.Set(1);
@@ -229,7 +229,7 @@ SCENARIO("Matching entities", "[general]")
                 REQUIRE(7 == matched[1]);
             }
         }
-        AND_WHEN("unknown component is matched")
+        AND_WHEN("unknown component is queried")
         {
             Flags query;
             query.Set(util::Config::MaxComponentCount - 1);
@@ -281,7 +281,7 @@ SCENARIO("Matching entities", "[general]")
             }
         }
 
-        WHEN("single matching queries")
+        WHEN("one component is queried")
         {
             for (std::size_t const& cId : components)
             {
@@ -320,7 +320,7 @@ SCENARIO("Matching entities", "[general]")
             }
         }
 
-        WHEN("random matching queries")
+        WHEN("random components are queried")
         {
             std::uniform_int_distribution<> entityIndex(0, entities.size() - 1);
 
