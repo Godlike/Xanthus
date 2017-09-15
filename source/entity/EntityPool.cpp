@@ -90,7 +90,7 @@ EntityPool::EntityCollection EntityPool::MatchEntities(component::Flags query) c
 
     for (EntityId const& id : m_entities)
     {
-        if (query.IsSubset(m_entityComponentFlags[id]))
+        if (InvalidEntityId != id && query.IsSubset(m_entityComponentFlags[id]))
         {
             result.push_back(id);
         }
@@ -165,7 +165,12 @@ void EntityPool::EnsureCapacity(std::size_t count)
 
     if (entitiesLeft < count)
     {
-        const std::size_t newSize = static_cast<std::size_t>(static_cast<float>(size) * 1.61803398875f + 0.5f);
+        std::size_t newSize = size;
+
+        do
+        {
+            newSize = static_cast<std::size_t>(static_cast<float>(newSize) * 1.61803398875f + 0.5f);
+        } while (newSize < count);
 
         m_entityComponents.resize(newSize);
         m_entityComponentFlags.resize(newSize);
