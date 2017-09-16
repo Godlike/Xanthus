@@ -161,16 +161,17 @@ void EntityPool::EntityDeleteComponents(EntityId entityId)
 void EntityPool::EnsureCapacity(std::size_t count)
 {
     const std::size_t size = m_entities.size();
-    const std::size_t entitiesLeft = m_entities.capacity() - size;
+    const std::size_t capacity = m_entities.capacity();
+    const std::size_t entitiesLeft = capacity - size;
 
     if (entitiesLeft < count)
     {
-        std::size_t newSize = size;
+        std::size_t newSize = capacity;
 
         do
         {
             newSize = static_cast<std::size_t>(static_cast<float>(newSize) * 1.61803398875f + 0.5f);
-        } while (newSize < count);
+        } while ((newSize - size) < count);
 
         m_entityComponents.resize(newSize);
         m_entityComponentFlags.resize(newSize);
