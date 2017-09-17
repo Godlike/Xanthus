@@ -8,7 +8,7 @@ cmake_policy(VERSION 3.0)
 project(Xanthus)
 
 find_package(UnicornRender REQUIRED)
-# find_package(PegasusPhysics REQUIRED)
+find_package(PegasusPhysics REQUIRED)
 
 include_directories(SYSTEM ${Unicorn_INCLUDE_DIRS} ${Pegasus_INCLUDE_DIRS})
 link_directories(${Unicorn_LIBRARY_DIRS} ${Pegasus_LIBRARY_DIRS})
@@ -30,6 +30,27 @@ set(ENTITY_SOURCES
 set(COMPONENT_SOURCES
     component/Flags.hpp
     component/Flags.imp
+
+    component/LifetimeComponent.hpp
+    component/PositionComponent.hpp
+    component/RenderComponent.hpp
+)
+
+set(SYSTEM_SOURCES
+    system/Skeleton.hpp
+    system/Skeleton.imp
+
+    system/Input.cpp
+    system/Input.hpp
+
+    system/Lifetime.cpp
+    system/Lifetime.hpp
+
+    system/Render.cpp
+    system/Render.hpp
+
+    system/Time.cpp
+    system/Time.hpp
 )
 
 set(UTIL_SOURCES

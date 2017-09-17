@@ -7,7 +7,9 @@
 #include "Application.hpp"
 
 #include <unicorn/Settings.hpp>
-#include <unicorn/UnicornRender.hpp>
+
+#include <cstdlib>
+#include <iostream>
 
 int main(int argc, char* argv[])
 {
@@ -16,17 +18,18 @@ int main(int argc, char* argv[])
     settings.Init(argc, argv, "balius_and_xanthus.log");
     settings.SetApplicationName("Balius and Xanthus");
 
-    unicorn::UnicornRender* unicornRender = new unicorn::UnicornRender();
+    xanthus::Application app(settings);
 
-    if (unicornRender->Init())
+    if (app.IsValid())
     {
-        Application app(settings, unicornRender);
-
         app.Run();
     }
-
-    unicornRender->Deinit();
-    delete unicornRender;
+    else
+    {
+        std::cerr << "Failed to run application!" << std::endl;
+    }
 
     unicorn::Settings::Destroy();
+
+    return EXIT_SUCCESS;
 }

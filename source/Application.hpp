@@ -1,61 +1,70 @@
 #ifndef XANTHUS_APPLICATION_HPP
 #define XANTHUS_APPLICATION_HPP
 
+#include "entity/World.hpp"
+
+#include "system/Input.hpp"
+#include "system/Lifetime.hpp"
+#include "system/Render.hpp"
+#include "system/Time.hpp"
+
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
 
 #include <unicorn/system/Timer.hpp>
-#include <unicorn/system/Window.hpp>
 
-#include <unicorn/video/CameraFpsController.hpp>
-#include <unicorn/video/geometry/MeshDescriptor.hpp>
-#include <unicorn/video/Renderer.hpp>
-
+#include <chrono>
 #include <list>
+
+namespace xanthus
+{
 
 class Application
 {
 public:
-    Application(unicorn::Settings& settings
-        , unicorn::UnicornRender* pRender);
+    Application(unicorn::Settings& settings);
     ~Application();
 
+    bool IsValid() const;
     void Run();
 
 private:
+    using TimeUnit = std::chrono::milliseconds;
+
     static const uint32_t MAX_OBJECT_COUNT = 5;
+
+    class Systems
+    {
+    public:
+        Systems(unicorn::Settings& settings, entity::World& world);
+        ~Systems() = default;
+
+        void Update(TimeUnit duration);
+
+        bool IsValid() const;
+        unicorn::UnicornRender& GetRender() { return m_unicornRender; }
+
+    private:
+        unicorn::UnicornRender m_unicornRender;
+
+        system::Time m_time;
+        system::Lifetime m_lifetime;
+        system::Render m_render;
+        system::Input m_input;
+
+        bool m_valid;
+    };
 
     void OnLogicFrame(unicorn::UnicornRender* pRender);
 
-    void OnMouseButton(unicorn::system::Window::MouseButtonEvent const& mouseButtonEvent);
-    void OnMouseScrolled(unicorn::system::Window* pWindow, std::pair<double, double> pos);
+    TimeUnit m_lastFrameTime;
 
-    void OnWindowKeyboard(unicorn::system::Window::KeyboardEvent const& keyboardEvent);
+    unicorn::system::Timer m_realTime;
 
-    void OnRendererDestroyed(unicorn::video::Renderer* pRenderer);
-
-    void SpawnObject();
-    void DeleteObject();
-
-    void SceneReset();
-
-    uint64_t m_frameDelta;
-    uint64_t m_lastFrameTime;
-
-    // Input
-    uint64_t m_inputTime;
-    uint64_t m_inputDirections[4];
-
-    // Render part
-    using MeshDescriptor = unicorn::video::geometry::MeshDescriptor;
-
-    unicorn::UnicornRender* m_pRender;
-    unicorn::system::Timer m_timer;
-
-    unicorn::video::Renderer* m_pVkRenderer;
-
-    std::list<MeshDescriptor*> m_objects;
-    std::list<MeshDescriptor*> m_worldObjects;
+    entity::World m_world;
+    Systems m_systems;
 };
+
+}
 
 #endif // XANTHUS_APPLICATION_HPP

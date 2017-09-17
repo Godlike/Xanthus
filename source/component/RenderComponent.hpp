@@ -1,16 +1,18 @@
 #ifndef XANTHUS_COMPONENT_RENDER_COMPONENT_HPP
 #define XANTHUS_COMPONENT_RENDER_COMPONENT_HPP
 
-#include <glm/glm.hpp>
+#include "util/Types.hpp"
+
+#include <unicorn/video/geometry/MeshDescriptor.hpp>
 
 namespace xanthus
 {
 namespace component
 {
 
-struct RenderComponent
+struct RenderComponent : public Component
 {
-    glm::vec3 position;
+    unicorn::video::geometry::MeshDescriptor* pObject;
 };
 
 }

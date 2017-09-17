@@ -1,0 +1,29 @@
+#include "system/Skeleton.hpp"
+
+namespace xanthus
+{
+namespace system
+{
+
+template<class... Comps>
+    Skeleton<Comps...>::Skeleton(entity::World& world)
+        : m_world(world)
+        , m_valid(false)
+{
+    m_query.Set<Comps...>();
+}
+
+template<class... Comps>
+    Skeleton<Comps...>::~Skeleton()
+{
+
+}
+
+template<class... Comps>
+    entity::World::Entities Skeleton<Comps...>::GetEntities()
+{
+    return m_world.MatchEntities(m_query);
+}
+
+}
+}

@@ -4,9 +4,8 @@
 #include "entity/Entity.hpp"
 #include "entity/EntityPool.hpp"
 
-#include "util/Config.hpp"
-
-#include <map>
+#include <chrono>
+#include <vector>
 
 namespace xanthus
 {
@@ -18,16 +17,31 @@ class Entity;
 class World
 {
 public:
+    using Entities = std::vector<Entity>;
+    using TimeUnit = std::chrono::milliseconds;
+
     World() = default;
     ~World() = default;
 
     Entity CreateEntity();
+    Entities CreateEntities(std::size_t count);
+
     void DeleteEntity(const Entity& entity);
+    void DeleteEntities(Entities const& entities);
+
+    Entities MatchEntities(component::Flags query) const;
 
     EntityPool& GetEntityPool() { return m_pool; }
 
+    void SetTime(TimeUnit time) { m_time = time; }
+    TimeUnit GetTime() const { return m_time; }
+
 private:
+    Entities GenerateEntities(EntityPool::EntityCollection const& collection) const;
+    static EntityPool::EntityCollection GenerateCollection(Entities const& entities);
+
     EntityPool m_pool;
+    TimeUnit m_time;
 };
 
 }
