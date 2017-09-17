@@ -3,7 +3,6 @@
 
 #include "component/Flags.hpp"
 
-#include "util/TemplateCounter.hpp"
 #include "util/Types.hpp"
 
 namespace xanthus
@@ -14,9 +13,7 @@ namespace component
 template<class Comp, class... Comps>
     inline void Flags::Set()
 {
-    const std::size_t componentId = util::TemplateCounter<Component>::GetId<Comp>();
-
-    Set(componentId);
+    Set(Component::GetId<Comp>());
 
     Set<Comps...>();
 }
@@ -27,9 +24,7 @@ template<>
 template<class Comp, class... Comps>
     inline bool Flags::Test()
 {
-    const std::size_t componentId = util::TemplateCounter<Component>::GetId<Comp>();
-
-    return Test(componentId) && Test<Comps...>();
+    return Test(Component::GetId<Comp>()) && Test<Comps...>();
 }
 
 template<>
@@ -38,9 +33,7 @@ template<>
 template<class Comp, class... Comps>
     inline void Flags::Reset()
 {
-    const std::size_t componentId = util::TemplateCounter<Component>::GetId<Comp>();
-
-    Reset(componentId);
+    Reset(Component::GetId<Comp>());
 
     Reset<Comps...>();
 }
