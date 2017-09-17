@@ -34,7 +34,7 @@ set(UTIL_SOURCES
 
 function(xanthus_add_test)
     set(options )
-    set(oneValueArgs NAME)
+    set(oneValueArgs NAME TIMEOUT)
     set(multiValueArgs SOURCE ARGS)
     cmake_parse_arguments(
         xanthus_add_test
@@ -43,11 +43,15 @@ function(xanthus_add_test)
 
     set(EXEC_NAME "${xanthus_add_test_NAME}Test")
 
-    if(${XANTHUS_VERBOSE_TESTS})
+    if (${XANTHUS_VERBOSE_TESTS})
         set(xanthus_add_test_ARGS ${xanthus_add_test_ARGS} -s)
     endif()
 
     set(xanthus_add_test_ARGS ${xanthus_add_test_ARGS} -o TestReport_${EXEC_NAME}.txt)
+
+    if (NOT xanthus_add_test_TIMEOUT)
+        set(xanthus_add_test_TIMEOUT 1)
+    endif()
 
     add_executable(
         ${EXEC_NAME}
@@ -57,6 +61,11 @@ function(xanthus_add_test)
     add_test(
         NAME ${xanthus_add_test_NAME}
         COMMAND ${EXEC_NAME} ${xanthus_add_test_ARGS}
+    )
+
+    set_tests_properties(
+        ${xanthus_add_test_NAME}
+        PROPERTIES TIMEOUT ${xanthus_add_test_TIMEOUT}
     )
 endfunction()
 
