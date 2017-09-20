@@ -1,24 +1,37 @@
 #include "system/Input.hpp"
 
+#include "assemblage/Factory.hpp"
+
+#include "system/Time.hpp"
+#include "system/Render.hpp"
+
 #include <unicorn/video/Graphics.hpp>
+
+#include <iostream>
 
 namespace xanthus
 {
 namespace system
 {
 
-Input::Input(unicorn::UnicornRender& render, Time& timeSystem)
-    : m_render(render)
+Input::Input(unicorn::UnicornRender& render
+    , Time& timeSystem
+    , Render& renderSystem
+    , assemblage::Factory& factory
+)
+    : m_unicornRender(render)
     , m_timeSystem(timeSystem)
+    , m_renderSystem(renderSystem)
+    , m_factory(factory)
 {
 
 }
 
 Input::~Input()
 {
-    m_render.GetGraphics()->WindowCreated.disconnect(this, &Input::OnWindowCreated);
+    m_unicornRender.GetGraphics()->WindowCreated.disconnect(this, &Input::OnWindowCreated);
 
-    for (unicorn::system::Window* pWindow : m_windows)
+    for (Window* pWindow : m_windows)
     {
         UnbindWindow(pWindow);
     }
@@ -26,12 +39,13 @@ Input::~Input()
 
 void Input::Init()
 {
-    m_render.GetGraphics()->WindowCreated.connect(this, &Input::OnWindowCreated);
+    m_unicornRender.GetGraphics()->WindowCreated.connect(this, &Input::OnWindowCreated);
 }
 
 void Input::Update()
 {
     using namespace unicorn::system;
+    using namespace assemblage;
 
     std::set<input::Key> pressedKeys;
     std::set<input::MouseButton> pressedMouse;
@@ -47,67 +61,140 @@ void Input::Update()
     }
 
     // Apply keys
-    for (input::Key const& key : pressedKeys)
     {
-        switch (key)
+        using input::Key;
+
+        static float const cameraMovementSpeed = 0.01f;
+        static float const timeFactorMultuplier = 0.95f;
+
+        assert(nullptr != m_renderSystem.pCameraController);
+
+        for (Key const& key : pressedKeys)
         {
-            case input::Key::Num_Add:
+            switch (key)
             {
-                m_timeSystem.factor /= 0.75f;
-                break;
-            }
-            case input::Key::Num_Subtract:
-            {
-                m_timeSystem.factor *= 0.75f;
-                break;
-            }
-            default:
-            {
-                break;
+                case Key::Num_Add:
+                {
+                    m_timeSystem.factor /= timeFactorMultuplier;
+                    std::cerr << "Time\tfactor " << m_timeSystem.factor << std::endl;
+                    break;
+                }
+                case Key::Num_Subtract:
+                {
+                    m_timeSystem.factor *= timeFactorMultuplier;
+                    std::cerr << "Time\tfactor " << m_timeSystem.factor << std::endl;
+                    break;
+                }
+                case Key::C:
+                {
+                    m_windows[0]->SetMouseMode(MouseMode::Captured);
+                    break;
+                }
+                case Key::Escape:
+                {
+                    m_windows[0]->SetMouseMode(MouseMode::Normal);
+                    break;
+                }
+
+                case Key::W:
+                {
+                    m_renderSystem.pCameraController->MoveForward(cameraMovementSpeed);
+                    break;
+                }
+                case Key::S:
+                {
+                    m_renderSystem.pCameraController->MoveBackward(cameraMovementSpeed);
+                    break;
+                }
+                case Key::A:
+                {
+                    m_renderSystem.pCameraController->MoveLeft(cameraMovementSpeed);
+                    break;
+                }
+                case Key::D:
+                {
+                    m_renderSystem.pCameraController->MoveRight(cameraMovementSpeed);
+                    break;
+                }
+                case Key::Q:
+                {
+                    m_renderSystem.pCameraController->MoveUp(cameraMovementSpeed);
+                    break;
+                }
+                case Key::E:
+                {
+                    m_renderSystem.pCameraController->MoveDown(cameraMovementSpeed);
+                    break;
+                }
+
+                default:
+                {
+                    break;
+                }
             }
         }
     }
 
     // Apply mouse
-    for (input::MouseButton const& mouse : pressedMouse)
     {
-        switch (mouse)
+        using input::MouseButton;
+
+        for (MouseButton const& mouse : pressedMouse)
         {
-            default:
+            switch (mouse)
             {
-                break;
+                case MouseButton::MouseLeft:
+                {
+                    m_factory.orders.particleEffects.push(Factory::Orders::ParticleEffect{
+                        glm::vec3{0, 0.0f, 0}
+                        , entity::World::TimeUnit(5000)
+                        , 2
+                    });
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
             }
         }
     }
 }
 
-void Input::OnWindowCreated(unicorn::system::Window* pWindow)
+void Input::BindWindow(Window* pWindow)
+{
+    pWindow->Destroyed.connect(this, &Input::OnWindowDestroyed);
+    pWindow->MousePosition.connect(this, &Input::OnWindowMousePosition);
+}
+
+void Input::UnbindWindow(Window* pWindow)
+{
+    pWindow->Destroyed.disconnect(this, &Input::OnWindowDestroyed);
+    pWindow->MousePosition.disconnect(this, &Input::OnWindowMousePosition);
+}
+
+void Input::OnWindowCreated(Window* pWindow)
 {
     BindWindow(pWindow);
 
     m_windows.push_back(pWindow);
 }
 
-void Input::OnWindowDestroyed(unicorn::system::Window* pWindow)
+void Input::OnWindowDestroyed(Window* pWindow)
 {
     auto it = std::find(m_windows.begin(), m_windows.end(), pWindow);
 
     if (it != m_windows.end())
     {
         m_windows.erase(it);
-
-        UnbindWindow(pWindow);
     }
 }
 
-void Input::BindWindow(unicorn::system::Window* pWindow)
+void Input::OnWindowMousePosition(Window* pWindow, std::pair<double, double> pos)
 {
-    pWindow->Destroyed.connect(this, &Input::OnWindowDestroyed);
-}
+    assert(nullptr != m_renderSystem.pCameraController);
 
-void Input::UnbindWindow(unicorn::system::Window* pWindow)
-{
-    pWindow->Destroyed.disconnect(this, &Input::OnWindowDestroyed);
+    m_renderSystem.pCameraController->UpdateView(pos.first, pos.second);
 }
 
 }

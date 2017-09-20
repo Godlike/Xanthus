@@ -2,10 +2,15 @@
 
 #include <unicorn/video/Color.hpp>
 #include <unicorn/video/Graphics.hpp>
+#include <unicorn/video/Primitives.hpp>
 
 #include <unicorn/system/CustomValue.hpp>
 #include <unicorn/system/Monitor.hpp>
 #include <unicorn/system/Window.hpp>
+
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <iostream>
 
 namespace xanthus
 {
@@ -14,6 +19,8 @@ namespace system
 
 Render::Render(entity::World& world)
     : Skeleton<component::PositionComponent, component::RenderComponent>(world)
+    , pCameraController(nullptr)
+    , m_pVkRenderer(nullptr)
 {
 
 }
@@ -22,16 +29,8 @@ Render::~Render()
 {
     if (m_pVkRenderer)
     {
-        for (auto& pMeshDescriptor : m_worldObjects)
-        {
-            m_pVkRenderer->DeleteMesh(&pMeshDescriptor->GetMesh());
-            delete pMeshDescriptor;
-        }
-
         delete m_pVkRenderer;
     }
-
-    m_unicornRender.Deinit();
 }
 
 void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
@@ -39,13 +38,13 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
     unicorn::video::Graphics* pGraphics = render.GetGraphics();
 
     pGraphics->SetWindowCreationHint(unicorn::system::WindowHint::Decorated,
-                                     unicorn::system::CustomValue::True);
+        unicorn::system::CustomValue::True);
 
     pGraphics->SetWindowCreationHint(unicorn::system::WindowHint::Resizable,
-                                     unicorn::system::CustomValue::True);
+        unicorn::system::CustomValue::True);
 
-    auto h = pGraphics->GetMonitors().back()->GetActiveVideoMode().height;
-    auto w = pGraphics->GetMonitors().back()->GetActiveVideoMode().width;
+    auto h = pGraphics->GetMonitors().back()->GetActiveVideoMode().height / 2;
+    auto w = pGraphics->GetMonitors().back()->GetActiveVideoMode().width / 2;
 
     settings.SetApplicationHeight(h);
     settings.SetApplicationWidth(w);
@@ -61,13 +60,42 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
     m_pVkRenderer->SetBackgroundColor(unicorn::video::Color::LightPink());
 
     m_pVkRenderer->Destroyed.connect(this, &Render::OnRendererDestroyed);
+
+    pCameraController = new unicorn::video::CameraFpsController(m_pVkRenderer->GetCamera());
 }
 
 void Render::Update()
 {
     entity::World::Entities entities = GetEntities();
 
+    for (entity::Entity const& entity : entities)
+    {
+        component::PositionComponent const& posComp = entity.GetComponent<component::PositionComponent>();
+        component::RenderComponent const& renderComp = entity.GetComponent<component::RenderComponent>();
 
+        renderComp.pMesh->modelMatrix = glm::translate(glm::mat4(), posComp.position);
+
+        if (renderComp.rotateAngle != 0.0f)
+        {
+            renderComp.pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
+        }
+
+        std::cerr << "entity#" << entity.GetId()
+            << " " << posComp.position[0]
+            << " " << posComp.position[1]
+            << " " << posComp.position[2]
+            << std::endl;
+    }
+}
+
+Render::Mesh* Render::SpawnMesh(Material const& material)
+{
+    return m_pVkRenderer->SpawnMesh(material);
+}
+
+void Render::DeleteMesh(Mesh* pMesh)
+{
+    m_pVkRenderer->DeleteMesh(pMesh);
 }
 
 void Render::OnRendererDestroyed(unicorn::video::Renderer* pRenderer)

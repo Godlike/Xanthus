@@ -1,12 +1,14 @@
 #include "system/Time.hpp"
 
+#include <iostream>
+
 namespace xanthus
 {
 namespace system
 {
 
 Time::Time(entity::World& world)
-    : factor(1.0f)
+    : factor(0.1f)
     , m_realDuration(0)
     , m_worldDuration(0)
     , m_world(world)

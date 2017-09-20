@@ -11,6 +11,7 @@ namespace Config
 {
 
 static const std::size_t MaxComponentCount = 32;
+static const std::size_t MaxPhysicsObjects = 1024;
 static const std::size_t InitialEntityCount = 1024;
 
 }

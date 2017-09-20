@@ -9,6 +9,12 @@
 
 namespace xanthus
 {
+
+namespace assemblage
+{
+class Factory;
+}
+
 namespace system
 {
 
@@ -17,10 +23,13 @@ class Lifetime : public Skeleton<component::LifetimeComponent>
 public:
     using TimeUnit = entity::World::TimeUnit;
 
-    Lifetime(entity::World& world);
+    Lifetime(entity::World& world, assemblage::Factory& factory);
     ~Lifetime() = default;
 
     void Update();
+
+private:
+    assemblage::Factory& m_factory;
 };
 
 }

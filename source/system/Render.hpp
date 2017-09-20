@@ -12,8 +12,10 @@
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
 
+#include <unicorn/video/CameraFpsController.hpp>
 #include <unicorn/video/Renderer.hpp>
-#include <unicorn/video/geometry/MeshDescriptor.hpp>
+#include <unicorn/video/Mesh.hpp>
+#include <unicorn/video/Material.hpp>
 
 #include <list>
 
@@ -25,26 +27,25 @@ namespace system
 class Render : public Skeleton<component::PositionComponent, component::RenderComponent>
 {
 public:
+    // Render part
+    using Mesh = unicorn::video::Mesh;
+    using Material = unicorn::video::Material;
+
     Render(entity::World& world);
     ~Render();
 
     void Init(unicorn::Settings& settings, unicorn::UnicornRender& render);
     void Update();
 
+    Mesh* SpawnMesh(Material const& material);
+    void DeleteMesh(Mesh* pMesh);
+
+    unicorn::video::CameraFpsController* pCameraController;
+
 private:
     void OnRendererDestroyed(unicorn::video::Renderer* pRenderer);
 
-    component::Flags m_query;
-
-    // Render part
-    using MeshDescriptor = unicorn::video::geometry::MeshDescriptor;
-
-    unicorn::UnicornRender m_unicornRender;
-    unicorn::UnicornRender* m_pRender;
-
     unicorn::video::Renderer* m_pVkRenderer;
-
-    std::list<MeshDescriptor*> m_worldObjects;
 };
 
 }

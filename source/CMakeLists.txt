@@ -15,6 +15,11 @@ link_directories(${Unicorn_LIBRARY_DIRS} ${Pegasus_LIBRARY_DIRS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+set(ASSEMBLAGE_SOURCES
+    assemblage/Factory.cpp
+    assemblage/Factory.hpp
+)
+
 set(ENTITY_SOURCES
     entity/Entity.cpp
     entity/Entity.hpp
@@ -33,6 +38,7 @@ set(COMPONENT_SOURCES
 
     component/LifetimeComponent.hpp
     component/PositionComponent.hpp
+    component/PhysicsComponent.hpp
     component/RenderComponent.hpp
 )
 
@@ -45,6 +51,9 @@ set(SYSTEM_SOURCES
 
     system/Lifetime.cpp
     system/Lifetime.hpp
+
+    system/Physics.cpp
+    system/Physics.hpp
 
     system/Render.cpp
     system/Render.hpp
@@ -62,10 +71,16 @@ set(UTIL_SOURCES
 add_executable(${PROJECT_NAME}
     main.cpp
     Application.cpp
+    Application.hpp
+
+    Systems.cpp
+    Systems.hpp
 
     ${ENTITY_SOURCES}
     ${COMPONENT_SOURCES}
     ${SYSTEM_SOURCES}
+
+    ${ASSEMBLAGE_SOURCES}
 
     ${UTIL_SOURCES}
 )

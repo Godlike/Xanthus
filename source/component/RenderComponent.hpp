@@ -3,7 +3,8 @@
 
 #include "util/Types.hpp"
 
-#include <unicorn/video/geometry/MeshDescriptor.hpp>
+#include <unicorn/video/Mesh.hpp>
+#include <unicorn/video/Material.hpp>
 
 namespace xanthus
 {
@@ -12,7 +13,11 @@ namespace component
 
 struct RenderComponent : public Component
 {
-    unicorn::video::geometry::MeshDescriptor* pObject;
+    unicorn::video::Mesh* pMesh;
+    unicorn::video::Material* pMaterial;
+
+    float rotateAngle = 0.0f;
+    glm::vec3 rotateAxes;
 };
 
 }

@@ -1,5 +1,7 @@
 #include "system/Lifetime.hpp"
 
+#include "assemblage/Factory.hpp"
+
 #include "entity/Entity.hpp"
 
 namespace xanthus
@@ -7,8 +9,9 @@ namespace xanthus
 namespace system
 {
 
-Lifetime::Lifetime(entity::World& world)
+Lifetime::Lifetime(entity::World& world, assemblage::Factory& factory)
     : Skeleton<component::LifetimeComponent>(world)
+    , m_factory(factory)
 {
 
 }
@@ -26,6 +29,7 @@ void Lifetime::Update()
 
         if (now > (component.spawned + component.ttl))
         {
+            m_factory.ReclaimEntity(entity);
             m_world.DeleteEntity(entity);
         }
     }

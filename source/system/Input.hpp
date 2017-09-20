@@ -1,37 +1,55 @@
 #ifndef XANTHUS_SYSTEM_INPUT_HPP
 #define XANTHUS_SYSTEM_INPUT_HPP
 
-#include <system/Time.hpp>
-
 #include <unicorn/system/Window.hpp>
 
 #include <unicorn/UnicornRender.hpp>
 
 namespace xanthus
 {
+
+namespace assemblage
+{
+class Factory;
+}
+
 namespace system
 {
+
+class Time;
+class Render;
 
 class Input
 {
 public:
-    Input(unicorn::UnicornRender& render, Time& timeSystem);
+    Input(unicorn::UnicornRender& render
+        , Time& timeSystem
+        , Render& renderSystem
+        , assemblage::Factory& factory
+    );
+
     ~Input();
 
     void Init();
     void Update();
 
 private:
-    void BindWindow(unicorn::system::Window* pWindow);
-    void UnbindWindow(unicorn::system::Window* pWindow);
+    using Window = unicorn::system::Window;
 
-    void OnWindowCreated(unicorn::system::Window* pWindow);
-    void OnWindowDestroyed(unicorn::system::Window* pWindow);
+    void BindWindow(Window* pWindow);
+    void UnbindWindow(Window* pWindow);
 
-    unicorn::UnicornRender& m_render;
+    void OnWindowCreated(Window* pWindow);
+    void OnWindowDestroyed(Window* pWindow);
+
+    void OnWindowMousePosition(Window* pWindow, std::pair<double, double> pos);
+
+    unicorn::UnicornRender& m_unicornRender;
     Time& m_timeSystem;
+    Render& m_renderSystem;
+    assemblage::Factory& m_factory;
 
-    std::vector<unicorn::system::Window*> m_windows;
+    std::vector<Window*> m_windows;
 };
 
 }
