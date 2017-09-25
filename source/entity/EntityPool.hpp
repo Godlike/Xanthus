@@ -6,8 +6,9 @@
 #include "util/Config.hpp"
 #include "util/Types.hpp"
 
-#include <vector>
+#include <array>
 #include <queue>
+#include <vector>
 
 namespace xanthus
 {

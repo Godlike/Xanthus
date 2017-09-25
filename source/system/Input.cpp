@@ -138,6 +138,7 @@ void Input::Update()
     // Apply mouse
     {
         using input::MouseButton;
+        using ParticleEffect = Factory::Orders::ParticleEffect;
 
         for (MouseButton const& mouse : pressedMouse)
         {
@@ -145,10 +146,21 @@ void Input::Update()
             {
                 case MouseButton::MouseLeft:
                 {
-                    m_factory.orders.particleEffects.push(Factory::Orders::ParticleEffect{
+                    m_factory.orders.particleEffects.push(ParticleEffect{
                         glm::vec3{0, 0.0f, 0}
                         , entity::World::TimeUnit(5000)
                         , 2
+                        , ParticleEffect::Type::Down
+                    });
+                    break;
+                }
+                case MouseButton::MouseRight:
+                {
+                    m_factory.orders.particleEffects.push(ParticleEffect{
+                        glm::vec3{0, 20.0f, 0}
+                        , entity::World::TimeUnit(5000)
+                        , 2
+                        , ParticleEffect::Type::Up
                     });
                     break;
                 }

@@ -101,10 +101,30 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
 
         // Physics
         {
-            pegasus::geometry::Sphere* pShape = new pegasus::geometry::Sphere(pos, side);
+            pegasus::geometry::SimpleShape* pShape = nullptr;
+            system::Physics::Force force = system::Physics::Force::Down;
+
+            switch (order.type)
+            {
+                case Orders::ParticleEffect::Type::Up:
+                {
+                    pShape = new pegasus::geometry::Box(pos
+                        , glm::dvec3{1, 0, 0} * side
+                        , glm::dvec3{0, 1, 0} * side
+                        , glm::dvec3{0, 0, 1} * side
+                    );
+                    force = system::Physics::Force::Up;
+                }
+                case Orders::ParticleEffect::Type::Down:
+                default:
+                {
+                    pShape = new pegasus::geometry::Sphere(pos, side);
+                    break;
+                }
+            }
 
             component::PhysicsComponent& physicsComponent = entities[i].AddComponent<component::PhysicsComponent>();
-            physicsComponent.pBody = m_systems.m_physics.SpawnBody(pShape);
+            physicsComponent.pBody = m_systems.m_physics.SpawnBody(pShape, true, force);
 
             physicsComponent.pBody->s->centerOfMass = pos;
             physicsComponent.pBody->p.SetPosition(pos);
@@ -121,7 +141,30 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             pMaterial->color = randvec3(colorDistribution, randEngine);
 
             system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
-            Primitives::Sphere(*pMesh, side, 16, 16);
+
+            switch (order.type)
+            {
+                case Orders::ParticleEffect::Type::Up:
+                {
+                    Primitives::Cube(*pMesh);
+
+                    std::vector<unicorn::video::Vertex> vertices = pMesh->GetVertices();
+                    for (auto& v : vertices)
+                    {
+                        v.pos *= 2 * side;
+                    }
+
+                    pMesh->SetMeshData(vertices, pMesh->GetIndices());
+
+                    break;
+                }
+                case Orders::ParticleEffect::Type::Down:
+                default:
+                {
+                    Primitives::Sphere(*pMesh, side, 16, 16);
+                    break;
+                }
+            }
 
             pMesh->modelMatrix = glm::translate(glm::mat4(1), pos);
 

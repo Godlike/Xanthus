@@ -44,7 +44,7 @@ void Application::OnLogicFrame(unicorn::UnicornRender* /*render*/)
     const TimeUnit currentTime = m_realTime.ElapsedMilliseconds();
     const TimeUnit frameDelta = currentTime - m_lastFrameTime;
 
-    if (frameDelta.count() <= 0)
+    if (frameDelta.count() <= 15)
     {
         return;
     }

@@ -32,9 +32,16 @@ public:
     {
         struct ParticleEffect
         {
+            enum class Type : uint8_t
+            {
+                Down
+                , Up
+            };
+
             glm::vec3 position;
             entity::World::TimeUnit ttl;
             std::size_t count;
+            Type type;
         };
 
         wink::event_queue<ParticleEffect> particleEffects;

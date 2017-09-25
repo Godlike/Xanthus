@@ -27,7 +27,12 @@ void Physics::Init()
 
     // Forces
     {
-        m_forces.push_back(std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, 9.8, 0}));
+        double const force = 9.8;
+
+        m_forces.resize(static_cast<std::size_t>(Force::Count));
+
+        m_forces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, force, 0});
+        m_forces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, -force, 0});
     }
 }
 
@@ -49,12 +54,12 @@ void Physics::Update(TimeUnit duration)
     }
 }
 
-pegasus::RigidBody* Physics::SpawnBody(pegasus::geometry::SimpleShape* pShape, bool generateContacts)
+pegasus::RigidBody* Physics::SpawnBody(pegasus::geometry::SimpleShape* pShape, bool generateContacts, Force force)
 {
     m_particles.emplace_back();
     pegasus::Particle& particle = m_particles.back();
 
-    m_physicsForceRegistry.Add(particle, *m_forces.front());
+    m_physicsForceRegistry.Add(particle, *m_forces[static_cast<std::size_t>(force)]);
 
     m_rigidBodies.emplace_back(
         particle,
