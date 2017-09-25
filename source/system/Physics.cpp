@@ -44,11 +44,12 @@ void Physics::Update(TimeUnit duration)
         component::PositionComponent& posComp = entity.GetComponent<component::PositionComponent>();
         component::PhysicsComponent const& physComp = entity.GetComponent<component::PhysicsComponent>();
 
-        posComp.position = static_cast<glm::vec3>(physComp.pParticle->GetPosition());
+        posComp.position = static_cast<glm::vec3>(physComp.pBody->p.GetPosition());
+        physComp.pBody->s->centerOfMass = posComp.position;
     }
 }
 
-pegasus::Particle* Physics::SpawnParticle(pegasus::geometry::SimpleShape* pShape, bool generateContacts)
+pegasus::RigidBody* Physics::SpawnBody(pegasus::geometry::SimpleShape* pShape, bool generateContacts)
 {
     m_particles.emplace_back();
     pegasus::Particle& particle = m_particles.back();
@@ -78,52 +79,67 @@ pegasus::Particle* Physics::SpawnParticle(pegasus::geometry::SimpleShape* pShape
         m_rigidContactMap[&rigidBody] = pContact;
     }
 
-    return &particle;
+    return &rigidBody;
 }
 
-void Physics::DeleteParticle(pegasus::Particle* pParticle)
+void Physics::DeleteBody(pegasus::RigidBody* pBody)
 {
-    auto particleIt = std::find_if(
-        m_particles.begin()
-        , m_particles.end()
-        , [=](auto const& it) -> bool
-        {
-            return &it == pParticle;
-        }
-    );
+    // Cache particle pointer
+    pegasus::Particle* pParticle = &pBody->p;
 
-    auto rigidBodyIt = m_rigidBodies.begin();
-
-    if (particleIt != m_particles.end())
+    // Cleanup rigid body
     {
-        auto index = std::distance(m_particles.begin(), particleIt);
-
-        std::advance(rigidBodyIt, index);
-
-        auto rigidContactIt = m_rigidContactMap.find(&*rigidBodyIt);
-
-        if (rigidContactIt != m_rigidContactMap.end())
-        {
-            auto physicsCGIt = std::find_if(
-                m_physicsContactGenerators.begin()
-                , m_physicsContactGenerators.end()
-                , [=](auto const& it) -> bool
-                {
-                    return it.get() == rigidContactIt->second;
-                }
-            );
-
-            if (physicsCGIt != m_physicsContactGenerators.end())
+        auto rigidBodyIt = std::find_if(
+            m_rigidBodies.begin()
+            , m_rigidBodies.end()
+            , [=](auto const& it) -> bool
             {
-                m_physicsContactGenerators.erase(physicsCGIt);
+                return &it == pBody;
             }
+        );
+
+        if (rigidBodyIt != m_rigidBodies.end())
+        {
+            auto rigidContactIt = m_rigidContactMap.find(&*rigidBodyIt);
+
+            if (rigidContactIt != m_rigidContactMap.end())
+            {
+                auto physicsCGIt = std::find_if(
+                    m_physicsContactGenerators.begin()
+                    , m_physicsContactGenerators.end()
+                    , [=](auto const& it) -> bool
+                    {
+                        return it.get() == rigidContactIt->second;
+                    }
+                );
+
+                if (physicsCGIt != m_physicsContactGenerators.end())
+                {
+                    m_physicsContactGenerators.erase(physicsCGIt);
+                }
+            }
+
+            m_rigidBodies.erase(rigidBodyIt);
         }
+    }
 
-        m_physicsForceRegistry.Remove(*particleIt);
+    // Cleanup particle
+    {
+        auto particleIt = std::find_if(
+            m_particles.begin()
+            , m_particles.end()
+            , [=](auto const& it) -> bool
+            {
+                return &it == pParticle;
+            }
+        );
 
-        m_rigidBodies.erase(rigidBodyIt);
+        if (particleIt != m_particles.end())
+        {
+            m_physicsForceRegistry.Remove(*particleIt);
 
-        m_particles.erase(particleIt);
+            m_particles.erase(particleIt);
+        }
     }
 }
 

@@ -3,7 +3,7 @@
 
 #include "util/Types.hpp"
 
-#include <pegasus/Particle.hpp>
+#include <pegasus/Mechanics.hpp>
 
 namespace xanthus
 {
@@ -12,7 +12,7 @@ namespace component
 
 struct PhysicsComponent : public Component
 {
-    pegasus::Particle* pParticle;
+    pegasus::RigidBody* pBody;
 };
 
 }

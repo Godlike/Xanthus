@@ -55,7 +55,7 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
     if (entity.HasComponent<component::PhysicsComponent>())
     {
         component::PhysicsComponent const& physicsComponent = entity.GetComponent<component::PhysicsComponent>();
-        m_systems.m_physics.DeleteParticle(physicsComponent.pParticle);
+        m_systems.m_physics.DeleteBody(physicsComponent.pBody);
     }
 
     if (entity.HasComponent<component::RenderComponent>())
@@ -74,9 +74,9 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
     std::mt19937 randEngine(rd());
 
     std::uniform_real_distribution<> sizeDistribution(0.1, 1.0);
-    std::uniform_real_distribution<> posDistribution(-10.f, 10.f);
+    std::uniform_real_distribution<> posDistribution(-1.0f, 1.0f);
     std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
-    std::uniform_real_distribution<> velocityDistribution(-1.0, 1.0);
+    std::uniform_real_distribution<> velocityDistribution(-5.0, 5.0);
 
     entity::World::Entities entities = m_world.CreateEntities(order.count);
 
@@ -104,11 +104,13 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             pegasus::geometry::Sphere* pShape = new pegasus::geometry::Sphere(pos, side);
 
             component::PhysicsComponent& physicsComponent = entities[i].AddComponent<component::PhysicsComponent>();
-            physicsComponent.pParticle = m_systems.m_physics.SpawnParticle(pShape);
+            physicsComponent.pBody = m_systems.m_physics.SpawnBody(pShape);
 
-            physicsComponent.pParticle->SetPosition(pos);
-            // physicsComponent.pParticle->SetVelocity(randvec3(velocityDistribution, randEngine));
-            physicsComponent.pParticle->SetDamping(0.98f);
+            physicsComponent.pBody->s->centerOfMass = pos;
+            physicsComponent.pBody->p.SetPosition(pos);
+            physicsComponent.pBody->p.SetMass(side);
+            physicsComponent.pBody->p.SetVelocity(randvec3(velocityDistribution, randEngine));
+            physicsComponent.pBody->p.SetDamping(0.98f);
         }
 
         // Render
@@ -121,9 +123,11 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
             Primitives::Sphere(*pMesh, side, 16, 16);
 
-            component::RenderComponent& renderComponent = entities[i].AddComponent<component::RenderComponent>();
-            renderComponent.pMesh = pMesh;
-            renderComponent.pMaterial = pMaterial;
+            pMesh->modelMatrix = glm::translate(glm::mat4(1), pos);
+
+            component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
+            renderComp.pMesh = pMesh;
+            renderComp.pMaterial = pMaterial;
         }
     }
 }
@@ -145,10 +149,11 @@ void Factory::CreatePlane(Orders::Plane const& order)
         );
 
         component::PhysicsComponent& physicsComponent = entity.AddComponent<component::PhysicsComponent>();
-        physicsComponent.pParticle = m_systems.m_physics.SpawnParticle(pShape, false);
+        physicsComponent.pBody = m_systems.m_physics.SpawnBody(pShape, false);
 
-        physicsComponent.pParticle->SetPosition(order.position);
-        physicsComponent.pParticle->SetInverseMass(0.0f);
+        physicsComponent.pBody->s->centerOfMass = order.position;
+        physicsComponent.pBody->p.SetPosition(order.position);
+        physicsComponent.pBody->p.SetInverseMass(0.0f);
     }
 
     // Render
@@ -176,12 +181,18 @@ void Factory::CreatePlane(Orders::Plane const& order)
 
         pMesh->SetMeshData(vertices, pMesh->GetIndices());
 
-        component::RenderComponent& renderComponent = entity.AddComponent<component::RenderComponent>();
-        renderComponent.pMesh = pMesh;
-        renderComponent.pMaterial = pMaterial;
+        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        renderComp.pMesh = pMesh;
+        renderComp.pMaterial = pMaterial;
 
-        renderComponent.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), order.normal));
-        renderComponent.rotateAxes = glm::cross(glm::vec3(0, 0, 1), order.normal);
+        renderComp.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), order.normal));
+        renderComp.rotateAxes = glm::cross(glm::vec3(0, 0, 1), order.normal);
+
+        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
+        if (renderComp.rotateAngle != 0.0f)
+        {
+            pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
+        }
     }
 }
 

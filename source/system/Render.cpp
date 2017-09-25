@@ -73,7 +73,7 @@ void Render::Update()
         component::PositionComponent const& posComp = entity.GetComponent<component::PositionComponent>();
         component::RenderComponent const& renderComp = entity.GetComponent<component::RenderComponent>();
 
-        renderComp.pMesh->modelMatrix = glm::translate(glm::mat4(), posComp.position);
+        renderComp.pMesh->modelMatrix = glm::translate(glm::mat4(1), posComp.position);
 
         if (renderComp.rotateAngle != 0.0f)
         {

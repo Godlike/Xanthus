@@ -35,8 +35,8 @@ public:
     void Init();
     void Update(TimeUnit duration);
 
-    pegasus::Particle* SpawnParticle(pegasus::geometry::SimpleShape* pShape, bool generateContracts = true);
-    void DeleteParticle(pegasus::Particle* pParticle);
+    pegasus::RigidBody* SpawnBody(pegasus::geometry::SimpleShape* pShape, bool generateContracts = true);
+    void DeleteBody(pegasus::RigidBody* pBody);
 
 private:
     // Physics part
