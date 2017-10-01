@@ -1,7 +1,7 @@
 #ifndef XANTHUS_ASSEMBLAGE_FACTORY_HPP
 #define XANTHUS_ASSEMBLAGE_FACTORY_HPP
 
-#include "Systems.hpp"
+#include "WorldTime.hpp"
 
 #include "component/PositionComponent.hpp"
 
@@ -9,6 +9,8 @@
 
 namespace xanthus
 {
+
+class Systems;
 
 namespace entity
 {
@@ -22,7 +24,7 @@ namespace assemblage
 class Factory
 {
 public:
-    Factory(entity::World& world, Systems& systems);
+    Factory(WorldTime& worldTime, entity::World& world, Systems& systems);
     ~Factory() = default;
 
     void ExecuteOrders();
@@ -39,7 +41,7 @@ public:
             };
 
             glm::vec3 position;
-            entity::World::TimeUnit ttl;
+            WorldTime::TimeUnit ttl;
             std::size_t count;
             Type type;
         };
@@ -58,6 +60,7 @@ private:
     void CreateParticleEffect(Orders::ParticleEffect const& order);
     void CreatePlane(Orders::Plane const& order);
 
+    WorldTime& m_worldTime;
     entity::World& m_world;
     Systems& m_systems;
 };

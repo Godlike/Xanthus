@@ -1,6 +1,8 @@
 #include "assemblage/Factory.hpp"
 
 #include "Application.hpp"
+#include "Systems.hpp"
+#include "WorldTime.hpp"
 
 #include "entity/Entity.hpp"
 #include "entity/World.hpp"
@@ -32,8 +34,9 @@ namespace xanthus
 namespace assemblage
 {
 
-Factory::Factory(entity::World& world, Systems& systems)
-    : m_world(world)
+Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
+    : m_worldTime(worldTime)
+    , m_world(world)
     , m_systems(systems)
 {
     orders.particleEffects.connect(this, &Factory::CreateParticleEffect);
@@ -55,7 +58,7 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
     if (entity.HasComponent<component::PhysicsComponent>())
     {
         component::PhysicsComponent const& physicsComponent = entity.GetComponent<component::PhysicsComponent>();
-        m_systems.m_physics.DeleteBody(physicsComponent.pBody);
+        m_systems.m_physics.DeleteBody(physicsComponent.pHandle);
     }
 
     if (entity.HasComponent<component::RenderComponent>())
@@ -68,7 +71,7 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
 
 void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
 {
-    entity::World::TimeUnit now = m_world.GetTime();
+    WorldTime::TimeUnit now = m_worldTime.GetTime();
 
     std::random_device rd;
     std::mt19937 randEngine(rd());
@@ -102,7 +105,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
         // Physics
         {
             pegasus::geometry::SimpleShape* pShape = nullptr;
-            system::Physics::Force force = system::Physics::Force::Down;
+            Force force = Force::Down;
 
             switch (order.type)
             {
@@ -113,7 +116,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                         , glm::dvec3{0, 1, 0} * side
                         , glm::dvec3{0, 0, 1} * side
                     );
-                    force = system::Physics::Force::Up;
+                    force = Force::Up;
                 }
                 case Orders::ParticleEffect::Type::Down:
                 default:
@@ -124,13 +127,15 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             }
 
             component::PhysicsComponent& physicsComponent = entities[i].AddComponent<component::PhysicsComponent>();
-            physicsComponent.pBody = m_systems.m_physics.SpawnBody(pShape, true, force);
-
-            physicsComponent.pBody->s->centerOfMass = pos;
-            physicsComponent.pBody->p.SetPosition(pos);
-            physicsComponent.pBody->p.SetMass(side);
-            physicsComponent.pBody->p.SetVelocity(randvec3(velocityDistribution, randEngine));
-            physicsComponent.pBody->p.SetDamping(0.98f);
+            physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
+                pShape
+                , pos
+                , randvec3(velocityDistribution, randEngine)
+                , side
+                , 0.98f
+                , true
+                , force
+            });
         }
 
         // Render
@@ -192,11 +197,15 @@ void Factory::CreatePlane(Orders::Plane const& order)
         );
 
         component::PhysicsComponent& physicsComponent = entity.AddComponent<component::PhysicsComponent>();
-        physicsComponent.pBody = m_systems.m_physics.SpawnBody(pShape, false);
-
-        physicsComponent.pBody->s->centerOfMass = order.position;
-        physicsComponent.pBody->p.SetPosition(order.position);
-        physicsComponent.pBody->p.SetInverseMass(0.0f);
+        physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
+            pShape
+            , order.position
+            , glm::dvec3{0}
+            , std::numeric_limits<double>::quiet_NaN()
+            , 0.98f
+            , false
+            , Force::Down
+        });
     }
 
     // Render

@@ -28,6 +28,14 @@ struct Component
 
 typedef std::unique_ptr<Component> ComponentPtr;
 
+enum class Force : std::size_t
+{
+    Down    = 0x00
+    , Up    = 0x01
+
+    , Count
+};
+
 }
 
 #endif // XANTHUS_UTIL_TYPES_HPP

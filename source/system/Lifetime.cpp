@@ -9,8 +9,12 @@ namespace xanthus
 namespace system
 {
 
-Lifetime::Lifetime(entity::World& world, assemblage::Factory& factory)
+Lifetime::Lifetime(entity::World& world
+    , WorldTime& worldTime
+    , assemblage::Factory& factory
+)
     : Skeleton<component::LifetimeComponent>(world)
+    , m_worldTime(worldTime)
     , m_factory(factory)
 {
 
@@ -21,7 +25,7 @@ void Lifetime::Update()
     using component::LifetimeComponent;
 
     entity::World::Entities entities = GetEntities();
-    const TimeUnit now = m_world.GetTime();
+    WorldTime::TimeUnit const now = m_worldTime.GetTime();
 
     for (entity::Entity& entity : entities)
     {

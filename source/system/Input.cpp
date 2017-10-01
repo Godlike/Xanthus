@@ -1,5 +1,7 @@
 #include "system/Input.hpp"
 
+#include "WorldTime.hpp"
+
 #include "assemblage/Factory.hpp"
 
 #include "system/Time.hpp"
@@ -148,7 +150,7 @@ void Input::Update()
                 {
                     m_factory.orders.particleEffects.push(ParticleEffect{
                         glm::vec3{0, 0.0f, 0}
-                        , entity::World::TimeUnit(5000)
+                        , WorldTime::TimeUnit(std::chrono::seconds(5))
                         , 2
                         , ParticleEffect::Type::Down
                     });
@@ -158,7 +160,7 @@ void Input::Update()
                 {
                     m_factory.orders.particleEffects.push(ParticleEffect{
                         glm::vec3{0, 20.0f, 0}
-                        , entity::World::TimeUnit(5000)
+                        , WorldTime::TimeUnit(std::chrono::seconds(5))
                         , 2
                         , ParticleEffect::Type::Up
                     });

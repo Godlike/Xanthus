@@ -1,7 +1,7 @@
 #ifndef XANTHUS_SYSTEM_TIME_HPP
 #define XANTHUS_SYSTEM_TIME_HPP
 
-#include "entity/World.hpp"
+#include "WorldTime.hpp"
 
 namespace xanthus
 {
@@ -11,9 +11,9 @@ namespace system
 class Time
 {
 public:
-    using TimeUnit = entity::World::TimeUnit;
+    using TimeUnit = WorldTime::TimeUnit;
 
-    Time(entity::World& world);
+    Time(WorldTime& worldTime);
     ~Time() = default;
 
     TimeUnit Update(TimeUnit realDuration);
@@ -26,7 +26,7 @@ private:
     TimeUnit m_realDuration;
     TimeUnit m_worldDuration;
 
-    entity::World& m_world;
+    WorldTime& m_worldTime;
 };
 
 }

@@ -7,6 +7,7 @@ cmake_policy(VERSION 3.0)
 
 project(Xanthus)
 
+find_package(Threads)
 find_package(UnicornRender REQUIRED)
 find_package(PegasusPhysics REQUIRED)
 
@@ -52,8 +53,14 @@ set(SYSTEM_SOURCES
     system/Lifetime.cpp
     system/Lifetime.hpp
 
-    system/Physics.cpp
-    system/Physics.hpp
+    system/physics/BodyHandle.hpp
+    system/physics/PegasusAdapter.cpp
+    system/physics/PegasusAdapter.hpp
+    system/physics/Physics.cpp
+    system/physics/Physics.hpp
+    system/physics/PhysicsThread.hpp
+    system/physics/PhysicsThread.cpp
+    system/physics/SpawnInfo.hpp
 
     system/Render.cpp
     system/Render.hpp
@@ -66,15 +73,21 @@ set(UTIL_SOURCES
     util/Config.hpp
     util/TemplateCounter.hpp
     util/Types.hpp
+
+    util/QSBR.hpp
+    util/QSBR.cpp
 )
 
 add_executable(${PROJECT_NAME}
     main.cpp
+
     Application.cpp
     Application.hpp
 
     Systems.cpp
     Systems.hpp
+
+    WorldTime.hpp
 
     ${ENTITY_SOURCES}
     ${COMPONENT_SOURCES}
@@ -85,4 +98,4 @@ add_executable(${PROJECT_NAME}
     ${UTIL_SOURCES}
 )
 
-target_link_libraries(${PROJECT_NAME} ${Unicorn_LIB} ${Pegasus_LIB})
+target_link_libraries(${PROJECT_NAME} ${Unicorn_LIB} ${Pegasus_LIB} ${CMAKE_THREAD_LIBS_INIT})

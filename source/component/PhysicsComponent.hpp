@@ -1,9 +1,9 @@
 #ifndef XANTHUS_COMPONENT_PHYSICS_COMPONENT_HPP
 #define XANTHUS_COMPONENT_PHYSICS_COMPONENT_HPP
 
-#include "util/Types.hpp"
+#include "system/physics/PhysicsThread.hpp"
 
-#include <pegasus/Mechanics.hpp>
+#include "util/Types.hpp"
 
 namespace xanthus
 {
@@ -12,7 +12,7 @@ namespace component
 
 struct PhysicsComponent : public Component
 {
-    pegasus::RigidBody* pBody;
+    system::physics::BodyHandle* pHandle;
 };
 
 }

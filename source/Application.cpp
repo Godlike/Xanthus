@@ -8,11 +8,12 @@ namespace xanthus
 // Application
 
 Application::Application(unicorn::Settings& settings)
-    : m_lastFrameTime(0)
+    : m_worldTime()
+    , m_lastFrameTime(0)
     , m_realTime(true)
     , m_world()
-    , m_systems(settings, m_world, m_factory)
-    , m_factory(m_world, m_systems)
+    , m_systems(settings, m_worldTime, m_world, m_factory)
+    , m_factory(m_worldTime, m_world, m_systems)
 {
     if (IsValid())
     {

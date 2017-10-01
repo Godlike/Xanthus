@@ -4,7 +4,6 @@
 #include "entity/Entity.hpp"
 #include "entity/EntityPool.hpp"
 
-#include <chrono>
 #include <vector>
 
 namespace xanthus
@@ -18,9 +17,12 @@ class World
 {
 public:
     using Entities = std::vector<Entity>;
-    using TimeUnit = std::chrono::milliseconds;
 
     World() = default;
+
+    World(World const& other) = delete;
+    World& operator=(World const& other) = delete;
+
     ~World() = default;
 
     Entity CreateEntity();
@@ -33,15 +35,11 @@ public:
 
     EntityPool& GetEntityPool() { return m_pool; }
 
-    void SetTime(TimeUnit time) { m_time = time; }
-    TimeUnit GetTime() const { return m_time; }
-
 private:
     Entities GenerateEntities(EntityPool::EntityCollection const& collection) const;
     static EntityPool::EntityCollection GenerateCollection(Entities const& entities);
 
     EntityPool m_pool;
-    TimeUnit m_time;
 };
 
 }

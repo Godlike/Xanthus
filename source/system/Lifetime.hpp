@@ -1,6 +1,8 @@
 #ifndef XANTHUS_SYSTEM_LIFETIME_HPP
 #define XANTHUS_SYSTEM_LIFETIME_HPP
 
+#include "WorldTime.hpp"
+
 #include "entity/World.hpp"
 
 #include "component/LifetimeComponent.hpp"
@@ -21,14 +23,13 @@ namespace system
 class Lifetime : public Skeleton<component::LifetimeComponent>
 {
 public:
-    using TimeUnit = entity::World::TimeUnit;
-
-    Lifetime(entity::World& world, assemblage::Factory& factory);
+    Lifetime(entity::World& world, WorldTime& worldTime, assemblage::Factory& factory);
     ~Lifetime() = default;
 
     void Update();
 
 private:
+    WorldTime& m_worldTime;
     assemblage::Factory& m_factory;
 };
 

@@ -2,6 +2,7 @@
 #define XANTHUS_APPLICATION_HPP
 
 #include "Systems.hpp"
+#include "WorldTime.hpp"
 
 #include "entity/World.hpp"
 
@@ -21,7 +22,7 @@ namespace xanthus
 class Application
 {
 public:
-    using TimeUnit = entity::World::TimeUnit;
+    using TimeUnit = WorldTime::TimeUnit;
 
     Application(unicorn::Settings& settings);
     ~Application();
@@ -34,12 +35,13 @@ private:
 
     void OnLogicFrame(unicorn::UnicornRender* pRender);
 
+    WorldTime m_worldTime;
     TimeUnit m_lastFrameTime;
-
     unicorn::system::Timer m_realTime;
 
     entity::World m_world;
     Systems m_systems;
+
     assemblage::Factory m_factory;
 };
 

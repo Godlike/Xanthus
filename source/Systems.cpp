@@ -8,12 +8,13 @@ namespace xanthus
 {
 
 Systems::Systems(unicorn::Settings& settings
+    , WorldTime& worldTime
     , entity::World& world
     , assemblage::Factory& factory
 )
-    : m_time(world)
-    , m_lifetime(world, factory)
-    , m_physics(world)
+    : m_time(worldTime)
+    , m_lifetime(world, worldTime, factory)
+    , m_physics(world, worldTime)
     , m_render(world)
     , m_input(m_unicornRender, m_time, m_render, factory)
     , m_valid(true)
@@ -37,14 +38,14 @@ Systems::Systems(unicorn::Settings& settings
     }
 }
 
-void Systems::Update(TimeUnit duration)
+void Systems::Update(WorldTime::TimeUnit duration)
 {
     m_input.Update();
 
-    TimeUnit worldDuration = m_time.Update(duration);
+    m_time.Update(duration);
 
     m_lifetime.Update();
-    m_physics.Update(worldDuration);
+    m_physics.Update();
     m_render.Update();
 }
 

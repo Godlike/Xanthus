@@ -7,11 +7,11 @@ namespace xanthus
 namespace system
 {
 
-Time::Time(entity::World& world)
+Time::Time(WorldTime& worldTime)
     : factor(0.1f)
     , m_realDuration(0)
     , m_worldDuration(0)
-    , m_world(world)
+    , m_worldTime(worldTime)
 {
 
 }
@@ -21,7 +21,7 @@ Time::TimeUnit Time::Update(TimeUnit realDuration)
     m_realDuration = realDuration;
     m_worldDuration = TimeUnit(static_cast<uint64_t>(static_cast<float>(realDuration.count()) * factor + 0.5f));
 
-    m_world.SetTime(m_world.GetTime() + m_worldDuration);
+    m_worldTime.SetTime(m_worldTime.GetTime() + m_worldDuration);
 
     return m_worldDuration;
 }

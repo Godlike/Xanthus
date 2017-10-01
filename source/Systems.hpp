@@ -5,7 +5,7 @@
 
 #include "system/Input.hpp"
 #include "system/Lifetime.hpp"
-#include "system/Physics.hpp"
+#include "system/physics/Physics.hpp"
 #include "system/Render.hpp"
 #include "system/Time.hpp"
 
@@ -23,16 +23,15 @@ namespace assemblage
 class Systems
 {
 public:
-    using TimeUnit = entity::World::TimeUnit;
-
     Systems(unicorn::Settings& settings
+        , WorldTime& worldTime
         , entity::World& world
         , assemblage::Factory& factory
     );
 
     ~Systems() = default;
 
-    void Update(TimeUnit duration);
+    void Update(WorldTime::TimeUnit duration);
 
     bool IsValid() const;
     unicorn::UnicornRender& GetRender() { return m_unicornRender; }
@@ -44,7 +43,7 @@ private:
 
     system::Time m_time;
     system::Lifetime m_lifetime;
-    system::Physics m_physics;
+    system::physics::Physics m_physics;
     system::Render m_render;
     system::Input m_input;
 

@@ -1,12 +1,16 @@
-#include "system/Physics.hpp"
+#include "system/physics/PegasusAdapter.hpp"
+
+#include "util/Config.hpp"
 
 namespace xanthus
 {
 namespace system
 {
+namespace physics
+{
 
-Physics::Physics(entity::World& world)
-    : Skeleton<component::PositionComponent, component::PhysicsComponent>(world)
+PegasusAdapter::PegasusAdapter()
+    : bodyCount(0)
     , m_physicsWorld(m_particles
         , m_physicsForceRegistry
         , m_physicsContactGenerators
@@ -16,10 +20,10 @@ Physics::Physics(entity::World& world)
 
 }
 
-void Physics::Init()
+void PegasusAdapter::Init()
 {
     m_rigidContactMap.clear();
-    m_rigidBodies.clear();
+    rigidBodies.clear();
     m_forces.clear();
     m_particles.clear();
     m_physicsContactGenerators.clear();
@@ -36,45 +40,44 @@ void Physics::Init()
     }
 }
 
-void Physics::Update(TimeUnit duration)
-{
-    m_physicsWorld.StartFrame();
-
-    m_physicsWorld.RunPhysics(static_cast<float>(duration.count()) / 1000.f);
-
-    entity::World::Entities entities = GetEntities();
-
-    for (entity::Entity& entity : entities)
-    {
-        component::PositionComponent& posComp = entity.GetComponent<component::PositionComponent>();
-        component::PhysicsComponent const& physComp = entity.GetComponent<component::PhysicsComponent>();
-
-        posComp.position = static_cast<glm::vec3>(physComp.pBody->p.GetPosition());
-        physComp.pBody->s->centerOfMass = posComp.position;
-    }
-}
-
-pegasus::RigidBody* Physics::SpawnBody(pegasus::geometry::SimpleShape* pShape, bool generateContacts, Force force)
+pegasus::RigidBody* PegasusAdapter::SpawnBody(SpawnInfo const& info)
 {
     m_particles.emplace_back();
     pegasus::Particle& particle = m_particles.back();
 
-    m_physicsForceRegistry.Add(particle, *m_forces[static_cast<std::size_t>(force)]);
+    particle.SetPosition(info.position);
+    particle.SetVelocity(info.velocity);
 
-    m_rigidBodies.emplace_back(
+    if (!std::isnan(info.mass))
+    {
+        particle.SetMass(info.mass);
+    }
+    else
+    {
+        particle.SetInverseMass(0.0f);
+    }
+
+    particle.SetDamping(info.damping);
+
+    m_physicsForceRegistry.Add(particle, *m_forces[static_cast<std::size_t>(info.force)]);
+
+    rigidBodies.emplace_back(
         particle,
-        std::unique_ptr<pegasus::geometry::SimpleShape>(pShape)
+        std::unique_ptr<pegasus::geometry::SimpleShape>(info.pShape)
     );
-    pegasus::RigidBody& rigidBody = m_rigidBodies.back();
+    ++bodyCount;
+    pegasus::RigidBody& rigidBody = rigidBodies.back();
 
-    if (generateContacts)
+    rigidBody.s->centerOfMass = info.position;
+
+    if (info.generateContacts)
     {
         using RigidContactGenerator = pegasus::ShapeContactGenerator<RigidBodies>;
 
         RigidContactGenerator* pContact = new RigidContactGenerator(
             rigidBody
-            , m_rigidBodies
-            , 0.5f
+            , rigidBodies
+            , 0.98f
         );
 
         m_physicsContactGenerators.push_back(
@@ -87,7 +90,7 @@ pegasus::RigidBody* Physics::SpawnBody(pegasus::geometry::SimpleShape* pShape, b
     return &rigidBody;
 }
 
-void Physics::DeleteBody(pegasus::RigidBody* pBody)
+void PegasusAdapter::DeleteBody(pegasus::RigidBody const* pBody)
 {
     // Cache particle pointer
     pegasus::Particle* pParticle = &pBody->p;
@@ -95,15 +98,15 @@ void Physics::DeleteBody(pegasus::RigidBody* pBody)
     // Cleanup rigid body
     {
         auto rigidBodyIt = std::find_if(
-            m_rigidBodies.begin()
-            , m_rigidBodies.end()
+            rigidBodies.begin()
+            , rigidBodies.end()
             , [=](auto const& it) -> bool
             {
                 return &it == pBody;
             }
         );
 
-        if (rigidBodyIt != m_rigidBodies.end())
+        if (rigidBodyIt != rigidBodies.end())
         {
             auto rigidContactIt = m_rigidContactMap.find(&*rigidBodyIt);
 
@@ -124,7 +127,8 @@ void Physics::DeleteBody(pegasus::RigidBody* pBody)
                 }
             }
 
-            m_rigidBodies.erase(rigidBodyIt);
+            rigidBodies.erase(rigidBodyIt);
+            --bodyCount;
         }
     }
 
@@ -148,5 +152,23 @@ void Physics::DeleteBody(pegasus::RigidBody* pBody)
     }
 }
 
+void PegasusAdapter::Run(WorldTime::TimeUnit tick)
+{
+    m_physicsWorld.StartFrame();
+
+    m_physicsWorld.RunPhysics(
+        static_cast<float>(tick.count())
+        * (static_cast<float>(decltype(tick)::period::num)
+            / static_cast<float>(decltype(tick)::period::den)
+        )
+    );
+
+    for (pegasus::RigidBody const& body : rigidBodies)
+    {
+        body.s->centerOfMass = body.p.GetPosition();
+    }
+}
+
+}
 }
 }
