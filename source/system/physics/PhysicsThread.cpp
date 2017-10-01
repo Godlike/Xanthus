@@ -1,5 +1,7 @@
 #include "system/physics/PhysicsThread.hpp"
 
+#include "util/Config.hpp"
+
 #include <limits>
 
 namespace xanthus
@@ -11,12 +13,10 @@ namespace physics
 
 // PhysicsThread
 
-PhysicsThread::PhysicsThread(WorldTime& worldTime
-    , WorldTime::TimeUnit tick
-)
+PhysicsThread::PhysicsThread(WorldTime& worldTime)
     : m_threadId(memoryReclaimer.RegisterThread())
     , m_working(true)
-    , m_timeControl(worldTime, tick)
+    , m_timeControl(worldTime)
     , m_currentPositions(nullptr)
 {
 
@@ -80,13 +80,15 @@ void PhysicsThread::DeleteBody(BodyHandle const* pHandle)
     });
 }
 
+WorldTime::TimeUnit PhysicsThread::GetCurrentTime() const
+{
+    return WorldTime::TimeUnit(m_timeControl.currentTimeRaw.load());
+}
+
 // PhysicsThread::TimeControl
 
-PhysicsThread::TimeControl::TimeControl(WorldTime& worldTime
-    , TimeUnit tick
-)
+PhysicsThread::TimeControl::TimeControl(WorldTime& worldTime)
     : worldTime(worldTime)
-    , tick(tick)
     , currentTime(worldTime.GetTime())
 {
 
@@ -102,13 +104,15 @@ void PhysicsThread::Routine()
     {
         target = m_timeControl.worldTime.GetTime();
 
-        for (TimeControl::TimeUnit future = (m_timeControl.currentTime + m_timeControl.tick); future < target; future += m_timeControl.tick)
+        for (TimeControl::TimeUnit future = (m_timeControl.currentTime + util::Config::PhysicsTick); future < target; future += util::Config::PhysicsTick)
         {
-            m_physicsEngine.Run(m_timeControl.tick);
+            m_physicsEngine.Run(util::Config::PhysicsTick);
 
             m_timeControl.currentTime = future;
 
             PollPositions();
+
+            m_timeControl.currentTimeRaw.store(future.count());
 
             memoryReclaimer.OnQuiescentState(m_threadId);
 

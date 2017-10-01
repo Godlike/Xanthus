@@ -12,7 +12,7 @@ Systems::Systems(unicorn::Settings& settings
     , entity::World& world
     , assemblage::Factory& factory
 )
-    : m_time(worldTime)
+    : m_time(worldTime, m_physics)
     , m_lifetime(world, worldTime, factory)
     , m_physics(world, worldTime)
     , m_render(world)

@@ -40,6 +40,8 @@ public:
     BodyHandle* SpawnBody(SpawnInfo const& info);
     void DeleteBody(BodyHandle const* pHandle);
 
+    WorldTime::TimeUnit GetCurrentTime() const { return m_physicsThread.GetCurrentTime(); }
+
 private:
     PhysicsThread m_physicsThread;
     PhysicsThread::ThreadIndex m_threadId;

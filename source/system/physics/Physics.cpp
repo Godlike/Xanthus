@@ -9,7 +9,7 @@ namespace physics
 
 Physics::Physics(entity::World& world, WorldTime& worldTime)
     : Skeleton<component::PositionComponent, component::PhysicsComponent>(world)
-    , m_physicsThread(worldTime, util::Config::PhysicsTick)
+    , m_physicsThread(worldTime)
     , m_threadId(m_physicsThread.memoryReclaimer.RegisterThread())
 {
 

@@ -171,7 +171,11 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 }
             }
 
-            pMesh->modelMatrix = glm::translate(glm::mat4(1), pos);
+            pMesh->modelMatrix = glm::translate(glm::mat4(1), glm::vec3{
+                std::numeric_limits<double>::quiet_NaN()
+                , std::numeric_limits<double>::quiet_NaN()
+                , std::numeric_limits<double>::quiet_NaN()
+            });
 
             component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
             renderComp.pMesh = pMesh;

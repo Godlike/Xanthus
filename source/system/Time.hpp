@@ -3,6 +3,8 @@
 
 #include "WorldTime.hpp"
 
+#include "system/physics/Physics.hpp"
+
 namespace xanthus
 {
 namespace system
@@ -13,7 +15,9 @@ class Time
 public:
     using TimeUnit = WorldTime::TimeUnit;
 
-    Time(WorldTime& worldTime);
+    Time(WorldTime& worldTime
+        , physics::Physics& physicsSystem
+    );
     ~Time() = default;
 
     TimeUnit Update(TimeUnit realDuration);
@@ -27,6 +31,7 @@ private:
     TimeUnit m_worldDuration;
 
     WorldTime& m_worldTime;
+    physics::Physics& m_physicsSystem;
 };
 
 }

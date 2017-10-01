@@ -29,8 +29,7 @@ public:
     using BodyPositions = std::unordered_map<pegasus::RigidBody const*, glm::dvec3>;
     using ThreadIndex = util::QSBR::ThreadIndex;
 
-    PhysicsThread(WorldTime& worldTime
-        , WorldTime::TimeUnit tick);
+    PhysicsThread(WorldTime& worldTime);
     ~PhysicsThread();
 
     void Init();
@@ -42,6 +41,8 @@ public:
     BodyHandle* SpawnBody(SpawnInfo const& info);
     void DeleteBody(BodyHandle const* pHandle);
 
+    WorldTime::TimeUnit GetCurrentTime() const;
+
     util::QSBR memoryReclaimer;
 
 private:
@@ -49,12 +50,12 @@ private:
     {
         using TimeUnit = WorldTime::TimeUnit;
 
-        TimeControl(WorldTime& worldTime
-            , TimeUnit tick);
+        TimeControl(WorldTime& worldTime);
 
         WorldTime& worldTime;
-        TimeUnit tick;
         TimeUnit currentTime;
+
+        std::atomic<uint64_t> currentTimeRaw;
     };
 
     struct Spawner
