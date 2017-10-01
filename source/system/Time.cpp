@@ -12,7 +12,7 @@ namespace system
 Time::Time(WorldTime& worldTime
     , physics::Physics& physicsSystem
 )
-    : factor(0.1f)
+    : factor(1.0f)
     , m_realDuration(0)
     , m_worldDuration(0)
     , m_worldTime(worldTime)

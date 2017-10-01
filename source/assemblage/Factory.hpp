@@ -3,7 +3,7 @@
 
 #include "WorldTime.hpp"
 
-#include "component/PositionComponent.hpp"
+#include "component/ValueAnimationComponent.hpp"
 
 #include <wink/event_queue.hpp>
 
@@ -32,6 +32,13 @@ public:
 
     struct Orders
     {
+        struct Dummy
+        {
+            glm::vec3 position;
+        };
+
+        wink::event_queue<Dummy> dummies;
+
         struct ParticleEffect
         {
             enum class Type : uint8_t
@@ -55,10 +62,21 @@ public:
         };
 
         wink::event_queue<Plane> planes;
+
+        struct Projectile
+        {
+            glm::vec3 position;
+
+            component::ValueAnimationComponent animationInfo;
+        };
+
+        wink::event_queue<Projectile> projectiles;
     } orders;
 private:
+    void CreateDummy(Orders::Dummy const& order);
     void CreateParticleEffect(Orders::ParticleEffect const& order);
     void CreatePlane(Orders::Plane const& order);
+    void CreateProjectile(Orders::Projectile const& order);
 
     WorldTime& m_worldTime;
     entity::World& m_world;

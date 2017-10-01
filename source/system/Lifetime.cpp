@@ -31,7 +31,7 @@ void Lifetime::Update()
     {
         LifetimeComponent& component = entity.GetComponent<LifetimeComponent>();
 
-        if (now > (component.spawned + component.ttl))
+        if (now >= component.deadline)
         {
             m_factory.ReclaimEntity(entity);
             m_world.DeleteEntity(entity);

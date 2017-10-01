@@ -4,12 +4,20 @@
 
 #include "assemblage/Factory.hpp"
 
+#include "controller/State.hpp"
+
+#include "component/LifetimeComponent.hpp"
+#include "component/PositionComponent.hpp"
+#include "component/ValueAnimationComponent.hpp"
+
+#include "system/animation/Linear.hpp"
 #include "system/Time.hpp"
 #include "system/Render.hpp"
 
 #include <unicorn/video/Graphics.hpp>
 
 #include <iostream>
+#include <random>
 
 namespace xanthus
 {
@@ -17,11 +25,13 @@ namespace system
 {
 
 Input::Input(unicorn::UnicornRender& render
+    , WorldTime& worldTime
     , Time& timeSystem
     , Render& renderSystem
     , assemblage::Factory& factory
 )
     : m_unicornRender(render)
+    , m_worldTime(worldTime)
     , m_timeSystem(timeSystem)
     , m_renderSystem(renderSystem)
     , m_factory(factory)
@@ -62,6 +72,14 @@ void Input::Update()
         pressedMouse.insert(windowMouse.begin(), windowMouse.end());
     }
 
+    std::vector<input::Key> newKeys;
+
+    std::set_difference(
+        pressedKeys.begin(), pressedKeys.end()
+        , m_lastKeys.begin(), m_lastKeys.end()
+        , std::back_inserter(newKeys)
+    );
+
     // Apply keys
     {
         using input::Key;
@@ -85,16 +103,6 @@ void Input::Update()
                 {
                     m_timeSystem.factor *= timeFactorMultuplier;
                     std::cerr << "Time\tfactor " << m_timeSystem.factor << std::endl;
-                    break;
-                }
-                case Key::C:
-                {
-                    m_windows[0]->SetMouseMode(MouseMode::Captured);
-                    break;
-                }
-                case Key::Escape:
-                {
-                    m_windows[0]->SetMouseMode(MouseMode::Normal);
                     break;
                 }
 
@@ -126,6 +134,57 @@ void Input::Update()
                 case Key::E:
                 {
                     m_renderSystem.pCameraController->MoveDown(cameraMovementSpeed);
+                    break;
+                }
+
+                default:
+                {
+                    break;
+                }
+            }
+        }
+
+        for (Key const& key : newKeys)
+        {
+            switch (key)
+            {
+                case Key::C:
+                {
+                    m_windows[0]->SetMouseMode(MouseMode::Captured);
+                    break;
+                }
+                case Key::Escape:
+                {
+                    m_windows[0]->SetMouseMode(MouseMode::Normal);
+                    break;
+                }
+
+                case Key::F:
+                {
+                    CreateProjectile();
+                    break;
+                }
+                case Key::Y:
+                {
+                    using Dummy = Factory::Orders::Dummy;
+
+                    std::random_device rd;
+                    std::mt19937 randEngine(rd());
+
+                    std::uniform_real_distribution<> posDistribution(-30.0f, 30.0f);
+
+                    m_factory.orders.dummies.push(Dummy{
+                        glm::vec3{
+                            posDistribution(randEngine)
+                            , posDistribution(randEngine)
+                            , posDistribution(randEngine)
+                        }
+                    });
+                    break;
+                }
+                case Key::Tab:
+                {
+                    controller::State::Instance().SelectNext();
                     break;
                 }
 
@@ -171,6 +230,83 @@ void Input::Update()
                     break;
                 }
             }
+        }
+    }
+
+    m_lastKeys = std::move(pressedKeys);
+}
+
+void Input::CreateProjectile()
+{
+    using namespace component;
+    using Projectile = assemblage::Factory::Orders::Projectile;
+
+    WorldTime::TimeUnit now = m_worldTime.GetTime();
+
+    ValueAnimationComponent animComp;
+    animComp.startPosition = glm::vec3{0, 0, 0};
+    animComp.target = controller::State::Instance().GetSelected();
+    animComp.startTime = now;
+    animComp.endTime = now + WorldTime::TimeUnit(std::chrono::seconds(1));
+    animComp.pFilter = &system::animation::Linear;
+
+    animComp.onFail.connect(this, &Input::DropProjectile);
+
+    animComp.onIteration.connect(this, &Input::IterateProjectile);
+
+    animComp.onComplete.connect(this, &Input::DropProjectile);
+    animComp.onComplete.connect(this, &Input::CompleteProjectile);
+
+    m_factory.orders.projectiles.push(Projectile{
+        animComp.startPosition
+        , animComp
+    });
+}
+
+void Input::DropProjectile(entity::Entity entity) const
+{
+    using namespace component;
+
+    LifetimeComponent lifetimeComp = entity.AddComponent<LifetimeComponent>();
+    lifetimeComp.deadline = m_worldTime.GetTime();
+}
+
+void Input::CompleteProjectile(entity::Entity entity)
+{
+    using namespace component;
+    using ParticleEffect = assemblage::Factory::Orders::ParticleEffect;
+
+    PositionComponent posComp = entity.GetComponent<PositionComponent>();
+
+    m_factory.orders.particleEffects.push(ParticleEffect{
+        posComp.position
+        , WorldTime::TimeUnit(std::chrono::seconds(1))
+        , 16
+        , ParticleEffect::Type::Down
+    });
+}
+
+void Input::IterateProjectile(entity::Entity entity)
+{
+    using namespace component;
+    using ParticleEffect = assemblage::Factory::Orders::ParticleEffect;
+
+    PositionComponent posComp = entity.GetComponent<PositionComponent>();
+
+    {
+        static std::random_device rd;
+        static std::mt19937 randEngine(rd());
+
+        static std::bernoulli_distribution particleChance(0.1);
+
+        if (particleChance(randEngine))
+        {
+            m_factory.orders.particleEffects.push(ParticleEffect{
+                posComp.position
+                , WorldTime::TimeUnit(std::chrono::milliseconds(500))
+                , 2
+                , ParticleEffect::Type::Down
+            });
         }
     }
 }

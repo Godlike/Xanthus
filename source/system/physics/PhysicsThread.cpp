@@ -19,7 +19,7 @@ PhysicsThread::PhysicsThread(WorldTime& worldTime)
     , m_timeControl(worldTime)
     , m_currentPositions(nullptr)
 {
-
+    m_currentPositions.store(new BodyPositions());
 }
 
 PhysicsThread::~PhysicsThread()

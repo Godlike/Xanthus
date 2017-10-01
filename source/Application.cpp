@@ -1,5 +1,7 @@
 #include "Application.hpp"
 
+#include "controller/State.hpp"
+
 #include <iostream>
 
 namespace xanthus
@@ -18,6 +20,8 @@ Application::Application(unicorn::Settings& settings)
     if (IsValid())
     {
         m_systems.GetRender().LogicFrame.connect(this, &Application::OnLogicFrame);
+
+        controller::State::Instance().Init(m_world);
     }
     else
     {

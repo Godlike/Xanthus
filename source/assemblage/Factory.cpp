@@ -7,6 +7,7 @@
 #include "entity/Entity.hpp"
 #include "entity/World.hpp"
 
+#include "component/DummyComponent.hpp"
 #include "component/PhysicsComponent.hpp"
 #include "component/RenderComponent.hpp"
 #include "component/LifetimeComponent.hpp"
@@ -39,18 +40,41 @@ Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
     , m_world(world)
     , m_systems(systems)
 {
+    orders.dummies.connect(this, &Factory::CreateDummy);
+
+    {
+        std::random_device rd;
+        std::mt19937 randEngine(rd());
+
+        std::uniform_real_distribution<> posDistribution(-30.0f, 30.0f);
+
+        for (int i = 0; i < 10; ++i)
+        {
+            orders.dummies.push(Factory::Orders::Dummy{
+                randvec3(posDistribution, randEngine)
+            });
+        }
+    }
+
     orders.particleEffects.connect(this, &Factory::CreateParticleEffect);
+
     orders.planes.connect(this, &Factory::CreatePlane);
     orders.planes.push(Factory::Orders::Plane{
         glm::vec3{1.0f, 20.0f, 0.0f},
         glm::vec3{0.0f, -1.0f, 0.0f}
     });
+
+    orders.projectiles.connect(this, &Factory::CreateProjectile);
+
+    ExecuteOrders();
 }
 
 void Factory::ExecuteOrders()
 {
+    orders.dummies.emit();
     orders.planes.emit();
     orders.particleEffects.emit();
+    orders.projectiles.emit();
 }
 
 void Factory::ReclaimEntity(entity::Entity const& entity)
@@ -66,6 +90,54 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
         component::RenderComponent const& renderComponent = entity.GetComponent<component::RenderComponent>();
         m_systems.m_render.DeleteMesh(renderComponent.pMesh);
         delete renderComponent.pMaterial;
+    }
+}
+
+void Factory::CreateDummy(Orders::Dummy const& order)
+{
+    entity::Entity entity = m_world.CreateEntity();
+
+    // Dummy
+    {
+        entity.AddComponent<component::DummyComponent>();
+    }
+
+    // Position
+    {
+        component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
+        positionComponent.position = order.position;
+    }
+
+    // Render
+    {
+        using unicorn::video::Primitives;
+
+        double const scale = 5.0f;
+
+        std::random_device rd;
+        std::mt19937 randEngine(rd());
+
+        std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
+
+        system::Render::Material* pMaterial = new system::Render::Material();
+        pMaterial->color = randvec3(colorDistribution, randEngine);
+
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        Primitives::Quad(*pMesh);
+
+        std::vector<unicorn::video::Vertex> vertices = pMesh->GetVertices();
+        for (auto& v : vertices)
+        {
+            v.pos *= scale;
+        }
+
+        pMesh->SetMeshData(vertices, pMesh->GetIndices());
+
+        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        renderComp.pMesh = pMesh;
+        renderComp.pMaterial = pMaterial;
+
+        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
     }
 }
 
@@ -98,8 +170,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
         // Lifetime
         {
             component::LifetimeComponent& lifetimeComponent = entities[i].AddComponent<component::LifetimeComponent>();
-            lifetimeComponent.spawned = now;
-            lifetimeComponent.ttl = order.ttl;
+            lifetimeComponent.deadline = now + order.ttl;
         }
 
         // Physics
@@ -249,6 +320,45 @@ void Factory::CreatePlane(Orders::Plane const& order)
         {
             pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
         }
+    }
+}
+
+void Factory::CreateProjectile(Orders::Projectile const& order)
+{
+    entity::Entity entity = m_world.CreateEntity();
+
+    // Position
+    {
+        component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
+        positionComponent.position = order.position;
+    }
+
+    // Render
+    {
+        using unicorn::video::Primitives;
+
+        std::random_device rd;
+        std::mt19937 randEngine(rd());
+
+        std::uniform_real_distribution<> sizeDistribution(2.0, 7.0);
+        std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
+
+        system::Render::Material* pMaterial = new system::Render::Material();
+        pMaterial->color = randvec3(colorDistribution, randEngine);
+
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
+
+        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
+
+        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        renderComp.pMesh = pMesh;
+        renderComp.pMaterial = pMaterial;
+    }
+
+    // Value Animation
+    {
+        entity.AddComponent<component::ValueAnimationComponent>() = order.animationInfo;
     }
 }
 

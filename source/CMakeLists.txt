@@ -37,15 +37,23 @@ set(COMPONENT_SOURCES
     component/Flags.hpp
     component/Flags.imp
 
+    component/DummyComponent.hpp
     component/LifetimeComponent.hpp
-    component/PositionComponent.hpp
     component/PhysicsComponent.hpp
+    component/PositionComponent.hpp
     component/RenderComponent.hpp
+    component/ValueAnimationComponent.hpp
 )
 
 set(SYSTEM_SOURCES
     system/Skeleton.hpp
     system/Skeleton.imp
+
+    system/animation/Filter.hpp
+    system/animation/Linear.cpp
+    system/animation/Linear.hpp
+    system/animation/ValueAnimation.cpp
+    system/animation/ValueAnimation.hpp
 
     system/Input.cpp
     system/Input.hpp
@@ -80,6 +88,9 @@ set(UTIL_SOURCES
 
 add_executable(${PROJECT_NAME}
     main.cpp
+
+    controller/State.cpp
+    controller/State.hpp
 
     Application.cpp
     Application.hpp
