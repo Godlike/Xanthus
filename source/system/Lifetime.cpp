@@ -4,6 +4,8 @@
 
 #include "entity/Entity.hpp"
 
+#include <iostream>
+
 namespace xanthus
 {
 namespace system
@@ -27,6 +29,8 @@ void Lifetime::Update()
     entity::World::Entities entities = GetEntities();
     WorldTime::TimeUnit const now = m_worldTime.GetTime();
 
+    uint32_t count = 0;
+
     for (entity::Entity& entity : entities)
     {
         LifetimeComponent& component = entity.GetComponent<LifetimeComponent>();
@@ -35,7 +39,13 @@ void Lifetime::Update()
         {
             m_factory.ReclaimEntity(entity);
             m_world.DeleteEntity(entity);
+            ++count;
         }
+    }
+
+    if (count)
+    {
+        std::cerr << "[Lifetime] deleted " << count << " entities" << std::endl;
     }
 }
 

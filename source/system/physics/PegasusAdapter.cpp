@@ -47,6 +47,7 @@ pegasus::RigidBody* PegasusAdapter::SpawnBody(SpawnInfo const& info)
 
     particle.SetPosition(info.position);
     particle.SetVelocity(info.velocity);
+    particle.SetAcceleration(glm::dvec3{0, 0, 0});
 
     if (!std::isnan(info.mass))
     {

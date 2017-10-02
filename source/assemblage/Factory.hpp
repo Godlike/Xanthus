@@ -48,7 +48,10 @@ public:
             };
 
             glm::vec3 position;
+            glm::vec3 velocity;
+
             WorldTime::TimeUnit ttl;
+
             std::size_t count;
             Type type;
         };

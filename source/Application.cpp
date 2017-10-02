@@ -49,7 +49,13 @@ void Application::OnLogicFrame(unicorn::UnicornRender* /*render*/)
     const TimeUnit currentTime = m_realTime.ElapsedMilliseconds();
     const TimeUnit frameDelta = currentTime - m_lastFrameTime;
 
-    if (frameDelta.count() <= 15)
+    std::cerr << std::endl;
+
+    std::cerr << "[Profiler] #render "
+        << std::chrono::duration_cast<std::chrono::microseconds>(frameDelta).count() << "us"
+        << std::endl;
+
+    if (frameDelta.count() == 0)
     {
         return;
     }
@@ -57,7 +63,7 @@ void Application::OnLogicFrame(unicorn::UnicornRender* /*render*/)
     m_systems.Update(frameDelta);
     m_factory.ExecuteOrders();
 
-    m_lastFrameTime = currentTime;
+    m_lastFrameTime = m_realTime.ElapsedMilliseconds();
 }
 
 }

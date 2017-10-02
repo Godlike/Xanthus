@@ -1,6 +1,7 @@
 #include "system/physics/PhysicsThread.hpp"
 
 #include "util/Config.hpp"
+#include "util/ScopeProfiler.hpp"
 
 #include <limits>
 
@@ -106,7 +107,10 @@ void PhysicsThread::Routine()
 
         for (TimeControl::TimeUnit future = (m_timeControl.currentTime + util::Config::PhysicsTick); future < target; future += util::Config::PhysicsTick)
         {
-            m_physicsEngine.Run(util::Config::PhysicsTick);
+            {
+                util::ScopeProfiler profiler("pegasus");
+                m_physicsEngine.Run(util::Config::PhysicsTick);
+            }
 
             m_timeControl.currentTime = future;
 

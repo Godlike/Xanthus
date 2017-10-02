@@ -201,7 +201,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
                 pShape
                 , pos
-                , randvec3(velocityDistribution, randEngine)
+                , randvec3(velocityDistribution, randEngine) + order.velocity
                 , side
                 , 0.98f
                 , true

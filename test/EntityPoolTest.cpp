@@ -6,7 +6,7 @@
 #include "component/Flags.hpp"
 #include "util/Types.hpp"
 
-#include <algorithm>
+#include <numeric>
 #include <array>
 #include <random>
 

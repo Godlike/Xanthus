@@ -79,6 +79,7 @@ set(SYSTEM_SOURCES
 
 set(UTIL_SOURCES
     util/Config.hpp
+    util/ScopeProfiler.hpp
     util/TemplateCounter.hpp
     util/Types.hpp
 

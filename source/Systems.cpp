@@ -2,6 +2,8 @@
 
 #include "assemblage/Factory.hpp"
 
+#include "util/ScopeProfiler.hpp"
+
 #include <iostream>
 
 namespace xanthus
@@ -41,14 +43,36 @@ Systems::Systems(unicorn::Settings& settings
 
 void Systems::Update(WorldTime::TimeUnit duration)
 {
-    m_input.Update();
+    {
+        util::ScopeProfiler profiler("input");
+        m_input.Update();
+    }
 
-    m_time.Update(duration);
+    {
+        util::ScopeProfiler profiler("time");
+        m_time.Update(duration);
+    }
 
-    m_lifetime.Update();
-    m_physics.Update();
-    m_valueAnimation.Update();
-    m_render.Update();
+    {
+        util::ScopeProfiler profiler("lifetime");
+        m_lifetime.Update();
+    }
+
+    {
+        util::ScopeProfiler profiler("physics sync");
+        m_physics.Update();
+    }
+
+    {
+        util::ScopeProfiler profiler("animation calc");
+        m_valueAnimation.Update();
+    }
+
+    {
+        util::ScopeProfiler profiler("render updates");
+        m_render.Update();
+    }
+
 }
 
 bool Systems::IsValid() const

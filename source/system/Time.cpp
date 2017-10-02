@@ -31,6 +31,9 @@ Time::TimeUnit Time::Update(TimeUnit realDuration)
     if ((worldNow - physNow) > util::Config::PhysicsTick)
     {
         m_worldDuration = TimeUnit(0);
+        std::cerr << "[Time] Physics are lagging behind "
+            << std::chrono::microseconds(worldNow - physNow).count() << "us"
+            << std::endl;
     }
     else
     {

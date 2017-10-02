@@ -208,7 +208,8 @@ void Input::Update()
                 case MouseButton::MouseLeft:
                 {
                     m_factory.orders.particleEffects.push(ParticleEffect{
-                        glm::vec3{0, 0.0f, 0}
+                        glm::vec3{0, 0, 0}
+                        , glm::vec3{0, 0, 0}
                         , WorldTime::TimeUnit(std::chrono::seconds(5))
                         , 2
                         , ParticleEffect::Type::Down
@@ -219,6 +220,7 @@ void Input::Update()
                 {
                     m_factory.orders.particleEffects.push(ParticleEffect{
                         glm::vec3{0, 20.0f, 0}
+                        , glm::vec3{0, 0, 0}
                         , WorldTime::TimeUnit(std::chrono::seconds(5))
                         , 2
                         , ParticleEffect::Type::Up
@@ -267,7 +269,7 @@ void Input::DropProjectile(entity::Entity entity) const
 {
     using namespace component;
 
-    LifetimeComponent lifetimeComp = entity.AddComponent<LifetimeComponent>();
+    LifetimeComponent& lifetimeComp = entity.AddComponent<LifetimeComponent>();
     lifetimeComp.deadline = m_worldTime.GetTime();
 }
 
@@ -276,10 +278,14 @@ void Input::CompleteProjectile(entity::Entity entity)
     using namespace component;
     using ParticleEffect = assemblage::Factory::Orders::ParticleEffect;
 
-    PositionComponent posComp = entity.GetComponent<PositionComponent>();
+    ValueAnimationComponent const& animComp = entity.GetComponent<ValueAnimationComponent>();
+    PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
+
+    glm::vec3 path = posComp.position - animComp.startPosition;
 
     m_factory.orders.particleEffects.push(ParticleEffect{
         posComp.position
+        , path
         , WorldTime::TimeUnit(std::chrono::seconds(1))
         , 16
         , ParticleEffect::Type::Down
@@ -291,18 +297,24 @@ void Input::IterateProjectile(entity::Entity entity)
     using namespace component;
     using ParticleEffect = assemblage::Factory::Orders::ParticleEffect;
 
-    PositionComponent posComp = entity.GetComponent<PositionComponent>();
+    PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
 
     {
         static std::random_device rd;
         static std::mt19937 randEngine(rd());
 
-        static std::bernoulli_distribution particleChance(0.1);
+        WorldTime::TimeUnit tick = m_timeSystem.GetWorldDuration();
+        std::bernoulli_distribution particleChance(
+            3 * static_cast<float>(tick.count())
+            * (static_cast<float>(decltype(tick)::period::num)
+                / static_cast<float>(decltype(tick)::period::den))
+        );
 
         if (particleChance(randEngine))
         {
             m_factory.orders.particleEffects.push(ParticleEffect{
                 posComp.position
+                , glm::vec3{0, 0, 0}
                 , WorldTime::TimeUnit(std::chrono::milliseconds(500))
                 , 2
                 , ParticleEffect::Type::Down

@@ -79,13 +79,9 @@ void Render::Update()
         {
             renderComp.pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
         }
-
-        std::cerr << "entity#" << entity.GetId()
-            << " " << posComp.position[0]
-            << " " << posComp.position[1]
-            << " " << posComp.position[2]
-            << std::endl;
     }
+
+    std::cerr << "[Render] entity count: " << entities.size() << std::endl;
 }
 
 Render::Mesh* Render::SpawnMesh(Material const& material)
