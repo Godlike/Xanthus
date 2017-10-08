@@ -3,6 +3,7 @@
 
 #include "WorldTime.hpp"
 
+#include "component/TimerComponent.hpp"
 #include "component/ValueAnimationComponent.hpp"
 
 #include <wink/event_queue.hpp>
@@ -71,6 +72,7 @@ public:
             glm::vec3 position;
 
             component::ValueAnimationComponent animationInfo;
+            component::TimerComponent timerInfo;
         };
 
         wink::event_queue<Projectile> projectiles;

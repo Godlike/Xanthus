@@ -16,6 +16,7 @@ Systems::Systems(unicorn::Settings& settings
 )
     : m_time(worldTime, m_physics)
     , m_lifetime(world, worldTime, factory)
+    , m_timer(world, worldTime)
     , m_physics(world, worldTime)
     , m_valueAnimation(world, worldTime)
     , m_render(world)
@@ -56,6 +57,11 @@ void Systems::Update(WorldTime::TimeUnit duration)
     {
         util::ScopeProfiler profiler("lifetime");
         m_lifetime.Update();
+    }
+
+    {
+        util::ScopeProfiler profiler("timer");
+        m_timer.Update();
     }
 
     {

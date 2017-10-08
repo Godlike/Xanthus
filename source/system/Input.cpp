@@ -8,6 +8,7 @@
 
 #include "component/LifetimeComponent.hpp"
 #include "component/PositionComponent.hpp"
+#include "component/TimerComponent.hpp"
 #include "component/ValueAnimationComponent.hpp"
 
 #include "system/animation/Linear.hpp"
@@ -243,25 +244,33 @@ void Input::CreateProjectile()
     using namespace component;
     using Projectile = assemblage::Factory::Orders::Projectile;
 
-    WorldTime::TimeUnit now = m_worldTime.GetTime();
+    WorldTime::TimeUnit const now = m_worldTime.GetTime();
+    WorldTime::TimeUnit const end = now + WorldTime::TimeUnit(std::chrono::seconds(1));
 
     ValueAnimationComponent animComp;
     animComp.startPosition = glm::vec3{0, 0, 0};
     animComp.target = controller::State::Instance().GetSelected();
     animComp.startTime = now;
-    animComp.endTime = now + WorldTime::TimeUnit(std::chrono::seconds(1));
+    animComp.endTime = end;
     animComp.pFilter = &system::animation::Linear;
 
     animComp.onFail.connect(this, &Input::DropProjectile);
 
-    animComp.onIteration.connect(this, &Input::IterateProjectile);
-
     animComp.onComplete.connect(this, &Input::DropProjectile);
     animComp.onComplete.connect(this, &Input::CompleteProjectile);
+
+    TimerComponent timerComp;
+
+    timerComp.lastTime = now;
+    timerComp.endTime = end;
+    timerComp.tick = WorldTime::TimeUnit(std::chrono::milliseconds(100));
+
+    timerComp.onTick.connect(this, &Input::IterateProjectile);
 
     m_factory.orders.projectiles.push(Projectile{
         animComp.startPosition
         , animComp
+        , timerComp
     });
 }
 
@@ -299,28 +308,13 @@ void Input::IterateProjectile(entity::Entity entity)
 
     PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
 
-    {
-        static std::random_device rd;
-        static std::mt19937 randEngine(rd());
-
-        WorldTime::TimeUnit tick = m_timeSystem.GetWorldDuration();
-        std::bernoulli_distribution particleChance(
-            3 * static_cast<float>(tick.count())
-            * (static_cast<float>(decltype(tick)::period::num)
-                / static_cast<float>(decltype(tick)::period::den))
-        );
-
-        if (particleChance(randEngine))
-        {
-            m_factory.orders.particleEffects.push(ParticleEffect{
-                posComp.position
-                , glm::vec3{0, 0, 0}
-                , WorldTime::TimeUnit(std::chrono::milliseconds(500))
-                , 2
-                , ParticleEffect::Type::Down
-            });
-        }
-    }
+    m_factory.orders.particleEffects.push(ParticleEffect{
+        posComp.position
+        , glm::vec3{0, 0, 0}
+        , WorldTime::TimeUnit(std::chrono::milliseconds(500))
+        , 2
+        , ParticleEffect::Type::Down
+    });
 }
 
 void Input::BindWindow(Window* pWindow)

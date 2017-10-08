@@ -28,7 +28,6 @@ struct ValueAnimationComponent : public Component
     system::animation::FilterFunc pFilter;
 
     wink::signal< wink::slot<void(entity::Entity)> > onFail;
-    wink::signal< wink::slot<void(entity::Entity)> > onIteration;
     wink::signal< wink::slot<void(entity::Entity)> > onComplete;
 };
 

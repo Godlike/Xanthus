@@ -8,9 +8,10 @@
 #include "entity/World.hpp"
 
 #include "component/DummyComponent.hpp"
+#include "component/LifetimeComponent.hpp"
 #include "component/PhysicsComponent.hpp"
 #include "component/RenderComponent.hpp"
-#include "component/LifetimeComponent.hpp"
+#include "component/TimerComponent.hpp"
 
 #include "system/Render.hpp"
 
@@ -359,6 +360,11 @@ void Factory::CreateProjectile(Orders::Projectile const& order)
     // Value Animation
     {
         entity.AddComponent<component::ValueAnimationComponent>() = order.animationInfo;
+    }
+
+    // Timer
+    {
+        entity.AddComponent<component::TimerComponent>() = order.timerInfo;
     }
 }
 

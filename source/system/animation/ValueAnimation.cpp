@@ -1,7 +1,5 @@
 #include "system/animation/ValueAnimation.hpp"
 
-#include "component/LifetimeComponent.hpp"
-
 namespace xanthus
 {
 namespace system
@@ -33,16 +31,16 @@ void ValueAnimation::Update()
         {
             valueAnimationComp.pFilter(now, posComp, valueAnimationComp);
 
-            valueAnimationComp.onIteration.emit(entity);
-
             if (now >= valueAnimationComp.endTime)
             {
                 valueAnimationComp.onComplete.emit(entity);
+                entity.DeleteComponent<component::ValueAnimationComponent>();
             }
         }
         else
         {
             valueAnimationComp.onFail.emit(entity);
+            entity.DeleteComponent<component::ValueAnimationComponent>();
         }
     }
 }

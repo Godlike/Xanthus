@@ -9,6 +9,7 @@
 #include "system/physics/Physics.hpp"
 #include "system/Render.hpp"
 #include "system/Time.hpp"
+#include "system/Timer.hpp"
 
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
@@ -44,6 +45,7 @@ private:
 
     system::Time m_time;
     system::Lifetime m_lifetime;
+    system::Timer m_timer;
     system::physics::Physics m_physics;
     system::animation::ValueAnimation m_valueAnimation;
     system::Render m_render;

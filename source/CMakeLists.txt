@@ -42,6 +42,7 @@ set(COMPONENT_SOURCES
     component/PhysicsComponent.hpp
     component/PositionComponent.hpp
     component/RenderComponent.hpp
+    component/TimerComponent.hpp
     component/ValueAnimationComponent.hpp
 )
 
@@ -75,6 +76,9 @@ set(SYSTEM_SOURCES
 
     system/Time.cpp
     system/Time.hpp
+
+    system/Timer.cpp
+    system/Timer.hpp
 )
 
 set(UTIL_SOURCES
