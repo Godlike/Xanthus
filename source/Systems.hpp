@@ -3,7 +3,7 @@
 
 #include "entity/World.hpp"
 
-#include "system/animation/ValueAnimation.hpp"
+#include "system/animation/FollowAnimation.hpp"
 #include "system/Input.hpp"
 #include "system/Lifetime.hpp"
 #include "system/physics/Physics.hpp"
@@ -47,7 +47,7 @@ private:
     system::Lifetime m_lifetime;
     system::Timer m_timer;
     system::physics::Physics m_physics;
-    system::animation::ValueAnimation m_valueAnimation;
+    system::animation::FollowAnimation m_followAnimation;
     system::Render m_render;
     system::Input m_input;
 

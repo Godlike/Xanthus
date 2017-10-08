@@ -2,7 +2,7 @@
 #define XANTHUS_SYSTEM_ANIMATION_LINEAR_HPP
 
 #include "component/PositionComponent.hpp"
-#include "component/ValueAnimationComponent.hpp"
+#include "component/FollowPositionComponent.hpp"
 
 #include "system/animation/Filter.hpp"
 
@@ -16,7 +16,7 @@ namespace animation
 void Linear(
     WorldTime::TimeUnit now
     , component::PositionComponent& positionComponent
-    , component::ValueAnimationComponent& animationComponent
+    , component::FollowPositionComponent& followComponent
 );
 
 }

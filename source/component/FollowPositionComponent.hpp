@@ -1,5 +1,5 @@
-#ifndef XANTHUS_COMPONENT_VALUE_ANIMATION_COMPONENT_HPP
-#define XANTHUS_COMPONENT_VALUE_ANIMATION_COMPONENT_HPP
+#ifndef XANTHUS_COMPONENT_FOLLOw_POSITION_COMPONENT_HPP
+#define XANTHUS_COMPONENT_FOLLOw_POSITION_COMPONENT_HPP
 
 #include "WorldTime.hpp"
 
@@ -17,7 +17,7 @@ namespace xanthus
 namespace component
 {
 
-struct ValueAnimationComponent : public Component
+struct FollowPositionComponent : public Component
 {
     glm::vec3 startPosition;
     entity::Entity target;
@@ -34,4 +34,4 @@ struct ValueAnimationComponent : public Component
 }
 }
 
-#endif // XANTHUS_COMPONENT_VALUE_ANIMATION_COMPONENT_HPP
+#endif // XANTHUS_COMPONENT_FOLLOw_POSITION_COMPONENT_HPP

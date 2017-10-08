@@ -40,6 +40,7 @@ Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
     : m_worldTime(worldTime)
     , m_world(world)
     , m_systems(systems)
+    , m_spawners(worldTime, *this)
 {
     orders.dummies.connect(this, &Factory::CreateDummy);
 
@@ -92,6 +93,15 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
         m_systems.m_render.DeleteMesh(renderComponent.pMesh);
         delete renderComponent.pMaterial;
     }
+}
+
+Factory::CustomSpawners::CustomSpawners(
+    WorldTime& worldTime
+    , Factory& factory
+)
+    : projectile(worldTime, factory)
+{
+
 }
 
 void Factory::CreateDummy(Orders::Dummy const& order)
@@ -328,10 +338,9 @@ void Factory::CreateProjectile(Orders::Projectile const& order)
 {
     entity::Entity entity = m_world.CreateEntity();
 
-    // Position
+    // Logic stuff
     {
-        component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
-        positionComponent.position = order.position;
+        m_spawners.projectile.Create(entity, order);
     }
 
     // Render
@@ -355,16 +364,6 @@ void Factory::CreateProjectile(Orders::Projectile const& order)
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
         renderComp.pMaterial = pMaterial;
-    }
-
-    // Value Animation
-    {
-        entity.AddComponent<component::ValueAnimationComponent>() = order.animationInfo;
-    }
-
-    // Timer
-    {
-        entity.AddComponent<component::TimerComponent>() = order.timerInfo;
     }
 }
 

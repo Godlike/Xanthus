@@ -6,12 +6,6 @@
 
 #include "controller/State.hpp"
 
-#include "component/LifetimeComponent.hpp"
-#include "component/PositionComponent.hpp"
-#include "component/TimerComponent.hpp"
-#include "component/ValueAnimationComponent.hpp"
-
-#include "system/animation/Linear.hpp"
 #include "system/Time.hpp"
 #include "system/Render.hpp"
 
@@ -162,7 +156,12 @@ void Input::Update()
 
                 case Key::F:
                 {
-                    CreateProjectile();
+                    using Projectile = Factory::Orders::Projectile;
+
+                    m_factory.orders.projectiles.push(Projectile{
+                        glm::vec3{0, 0, 0}
+                        , controller::State::Instance().GetSelected()
+                    });
                     break;
                 }
                 case Key::Y:
@@ -237,84 +236,6 @@ void Input::Update()
     }
 
     m_lastKeys = std::move(pressedKeys);
-}
-
-void Input::CreateProjectile()
-{
-    using namespace component;
-    using Projectile = assemblage::Factory::Orders::Projectile;
-
-    WorldTime::TimeUnit const now = m_worldTime.GetTime();
-    WorldTime::TimeUnit const end = now + WorldTime::TimeUnit(std::chrono::seconds(1));
-
-    ValueAnimationComponent animComp;
-    animComp.startPosition = glm::vec3{0, 0, 0};
-    animComp.target = controller::State::Instance().GetSelected();
-    animComp.startTime = now;
-    animComp.endTime = end;
-    animComp.pFilter = &system::animation::Linear;
-
-    animComp.onFail.connect(this, &Input::DropProjectile);
-
-    animComp.onComplete.connect(this, &Input::DropProjectile);
-    animComp.onComplete.connect(this, &Input::CompleteProjectile);
-
-    TimerComponent timerComp;
-
-    timerComp.lastTime = now;
-    timerComp.endTime = end;
-    timerComp.tick = WorldTime::TimeUnit(std::chrono::milliseconds(100));
-
-    timerComp.onTick.connect(this, &Input::IterateProjectile);
-
-    m_factory.orders.projectiles.push(Projectile{
-        animComp.startPosition
-        , animComp
-        , timerComp
-    });
-}
-
-void Input::DropProjectile(entity::Entity entity) const
-{
-    using namespace component;
-
-    LifetimeComponent& lifetimeComp = entity.AddComponent<LifetimeComponent>();
-    lifetimeComp.deadline = m_worldTime.GetTime();
-}
-
-void Input::CompleteProjectile(entity::Entity entity)
-{
-    using namespace component;
-    using ParticleEffect = assemblage::Factory::Orders::ParticleEffect;
-
-    ValueAnimationComponent const& animComp = entity.GetComponent<ValueAnimationComponent>();
-    PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
-
-    glm::vec3 path = posComp.position - animComp.startPosition;
-
-    m_factory.orders.particleEffects.push(ParticleEffect{
-        posComp.position
-        , path
-        , WorldTime::TimeUnit(std::chrono::seconds(1))
-        , 16
-        , ParticleEffect::Type::Down
-    });
-}
-
-void Input::IterateProjectile(entity::Entity entity)
-{
-    using namespace component;
-    using ParticleEffect = assemblage::Factory::Orders::ParticleEffect;
-
-    PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
-
-    m_factory.orders.particleEffects.push(ParticleEffect{
-        posComp.position
-        , glm::vec3{0, 0, 0}
-        , WorldTime::TimeUnit(std::chrono::milliseconds(500))
-        , 2
-        , ParticleEffect::Type::Down
-    });
 }
 
 void Input::BindWindow(Window* pWindow)

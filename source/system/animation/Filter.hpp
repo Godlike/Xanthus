@@ -8,7 +8,7 @@ namespace component
 {
 
 struct PositionComponent;
-struct ValueAnimationComponent;
+struct FollowPositionComponent;
 
 }
 
@@ -20,7 +20,7 @@ namespace animation
 typedef void (*FilterFunc)(
     WorldTime::TimeUnit now
     , component::PositionComponent& positionComponent
-    , component::ValueAnimationComponent& animationComponent
+    , component::FollowPositionComponent& followComponent
 );
 
 }

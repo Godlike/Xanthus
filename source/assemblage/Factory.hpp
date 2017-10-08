@@ -3,8 +3,10 @@
 
 #include "WorldTime.hpp"
 
+#include "assemblage/ProjectileFactory.hpp"
+
 #include "component/TimerComponent.hpp"
-#include "component/ValueAnimationComponent.hpp"
+#include "component/FollowPositionComponent.hpp"
 
 #include <wink/event_queue.hpp>
 
@@ -67,17 +69,19 @@ public:
 
         wink::event_queue<Plane> planes;
 
-        struct Projectile
-        {
-            glm::vec3 position;
-
-            component::ValueAnimationComponent animationInfo;
-            component::TimerComponent timerInfo;
-        };
+        using Projectile = assemblage::ProjectileFactory::Order;
 
         wink::event_queue<Projectile> projectiles;
     } orders;
+
 private:
+    struct CustomSpawners
+    {
+        CustomSpawners(WorldTime& worldTime, Factory& factory);
+
+        ProjectileFactory projectile;
+    };
+
     void CreateDummy(Orders::Dummy const& order);
     void CreateParticleEffect(Orders::ParticleEffect const& order);
     void CreatePlane(Orders::Plane const& order);
@@ -86,6 +90,8 @@ private:
     WorldTime& m_worldTime;
     entity::World& m_world;
     Systems& m_systems;
+
+    CustomSpawners m_spawners;
 };
 
 }

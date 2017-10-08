@@ -19,6 +19,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(ASSEMBLAGE_SOURCES
     assemblage/Factory.cpp
     assemblage/Factory.hpp
+
+    assemblage/ProjectileFactory.cpp
+    assemblage/ProjectileFactory.hpp
 )
 
 set(ENTITY_SOURCES
@@ -43,7 +46,7 @@ set(COMPONENT_SOURCES
     component/PositionComponent.hpp
     component/RenderComponent.hpp
     component/TimerComponent.hpp
-    component/ValueAnimationComponent.hpp
+    component/FollowPositionComponent.hpp
 )
 
 set(SYSTEM_SOURCES
@@ -53,8 +56,8 @@ set(SYSTEM_SOURCES
     system/animation/Filter.hpp
     system/animation/Linear.cpp
     system/animation/Linear.hpp
-    system/animation/ValueAnimation.cpp
-    system/animation/ValueAnimation.hpp
+    system/animation/FollowAnimation.cpp
+    system/animation/FollowAnimation.hpp
 
     system/Input.cpp
     system/Input.hpp
