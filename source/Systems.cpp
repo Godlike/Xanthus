@@ -70,7 +70,7 @@ void Systems::Update(WorldTime::TimeUnit duration)
     }
 
     {
-        util::ScopeProfiler profiler("animation calc");
+        util::ScopeProfiler profiler("follow animation");
         m_followAnimation.Update();
     }
 

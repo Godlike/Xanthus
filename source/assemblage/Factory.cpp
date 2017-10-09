@@ -15,21 +15,14 @@
 
 #include "system/Render.hpp"
 
+#include "util/Math.hpp"
+
 #include <unicorn/video/Primitives.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <cmath>
 #include <random>
-
-namespace
-{
-    template<class Distribution, class Engine>
-        glm::vec3 randvec3(Distribution& distribution, Engine& engine)
-    {
-        return glm::vec3{distribution(engine), distribution(engine), distribution(engine)};
-    }
-}
 
 namespace xanthus
 {
@@ -40,7 +33,7 @@ Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
     : m_worldTime(worldTime)
     , m_world(world)
     , m_systems(systems)
-    , m_spawners(worldTime, *this)
+    , m_spawners(worldTime, *this, m_systems)
 {
     orders.dummies.connect(this, &Factory::CreateDummy);
 
@@ -53,7 +46,7 @@ Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
         for (int i = 0; i < 10; ++i)
         {
             orders.dummies.push(Factory::Orders::Dummy{
-                randvec3(posDistribution, randEngine)
+                util::math::randvec3(posDistribution, randEngine)
             });
         }
     }
@@ -98,8 +91,10 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
 Factory::CustomSpawners::CustomSpawners(
     WorldTime& worldTime
     , Factory& factory
+    , Systems& systems
 )
-    : projectile(worldTime, factory)
+    : projectile(worldTime, factory, systems.m_render)
+    , gridplate(systems.m_render)
 {
 
 }
@@ -131,7 +126,7 @@ void Factory::CreateDummy(Orders::Dummy const& order)
         std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
 
         system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = randvec3(colorDistribution, randEngine);
+        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
 
         system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
         Primitives::Quad(*pMesh);
@@ -169,7 +164,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
     for (uint16_t i = 0; i < order.count; ++i)
     {
         double const side = sizeDistribution(randEngine);
-        glm::vec3 posShift = randvec3(posDistribution, randEngine);
+        glm::vec3 posShift = util::math::randvec3(posDistribution, randEngine);
         glm::vec3 pos = order.position + posShift;
 
         // Position
@@ -212,7 +207,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
                 pShape
                 , pos
-                , randvec3(velocityDistribution, randEngine) + order.velocity
+                , util::math::randvec3(velocityDistribution, randEngine) + order.velocity
                 , side
                 , 0.98f
                 , true
@@ -225,7 +220,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             using unicorn::video::Primitives;
 
             system::Render::Material* pMaterial = new system::Render::Material();
-            pMaterial->color = randvec3(colorDistribution, randEngine);
+            pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
 
             system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
 
@@ -306,7 +301,7 @@ void Factory::CreatePlane(Orders::Plane const& order)
         std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
 
         system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = randvec3(colorDistribution, randEngine);
+        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
 
         system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
         Primitives::Quad(*pMesh);
@@ -336,35 +331,7 @@ void Factory::CreatePlane(Orders::Plane const& order)
 
 void Factory::CreateProjectile(Orders::Projectile const& order)
 {
-    entity::Entity entity = m_world.CreateEntity();
-
-    // Logic stuff
-    {
-        m_spawners.projectile.Create(entity, order);
-    }
-
-    // Render
-    {
-        using unicorn::video::Primitives;
-
-        std::random_device rd;
-        std::mt19937 randEngine(rd());
-
-        std::uniform_real_distribution<> sizeDistribution(2.0, 7.0);
-        std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
-
-        system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = randvec3(colorDistribution, randEngine);
-
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
-        Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
-
-        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
-
-        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
-        renderComp.pMesh = pMesh;
-        renderComp.pMaterial = pMaterial;
-    }
+    m_spawners.projectile.Create(m_world.CreateEntity(), order);
 }
 
 }

@@ -5,10 +5,18 @@
 
 #include "entity/Entity.hpp"
 
+#include "system/Render.hpp"
+
 #include <glm/glm.hpp>
 
 namespace xanthus
 {
+
+namespace system
+{
+    class Render;
+}
+
 namespace assemblage
 {
 
@@ -23,7 +31,10 @@ public:
         entity::Entity target;
     };
 
-    ProjectileFactory(WorldTime const& worldTime, assemblage::Factory& factory);
+    ProjectileFactory(WorldTime const& worldTime
+        , assemblage::Factory& factory
+        , system::Render& render
+    );
 
     static void Delete(entity::Entity entity);
 
@@ -34,6 +45,7 @@ public:
 private:
     WorldTime const& m_worldTime;
     assemblage::Factory& m_factory;
+    system::Render& m_render;
 };
 
 }

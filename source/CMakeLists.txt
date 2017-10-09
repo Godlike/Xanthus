@@ -20,6 +20,9 @@ set(ASSEMBLAGE_SOURCES
     assemblage/Factory.cpp
     assemblage/Factory.hpp
 
+    assemblage/GridPlateFactory.cpp
+    assemblage/GridPlateFactory.hpp
+
     assemblage/ProjectileFactory.cpp
     assemblage/ProjectileFactory.hpp
 )
@@ -86,6 +89,7 @@ set(SYSTEM_SOURCES
 
 set(UTIL_SOURCES
     util/Config.hpp
+    util/Math.hpp
     util/ScopeProfiler.hpp
     util/TemplateCounter.hpp
     util/Types.hpp
@@ -94,11 +98,16 @@ set(UTIL_SOURCES
     util/QSBR.cpp
 )
 
-add_executable(${PROJECT_NAME}
-    main.cpp
+set(CONTROLLER_SOURCES
+    controller/Grid.cpp
+    controller/Grid.hpp
 
     controller/State.cpp
     controller/State.hpp
+)
+
+add_executable(${PROJECT_NAME}
+    main.cpp
 
     Application.cpp
     Application.hpp
@@ -115,6 +124,8 @@ add_executable(${PROJECT_NAME}
     ${ASSEMBLAGE_SOURCES}
 
     ${UTIL_SOURCES}
+
+    ${CONTROLLER_SOURCES}
 )
 
 target_link_libraries(${PROJECT_NAME} ${Unicorn_LIB} ${Pegasus_LIB} ${CMAKE_THREAD_LIBS_INIT})

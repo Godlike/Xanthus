@@ -8,6 +8,15 @@
 #include "component/FollowPositionComponent.hpp"
 
 #include "system/animation/Linear.hpp"
+#include "system/Render.hpp"
+
+#include "util/Math.hpp"
+
+#include <unicorn/video/Primitives.hpp>
+
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <random>
 
 namespace xanthus
 {
@@ -16,9 +25,13 @@ namespace assemblage
 
 using namespace xanthus::component;
 
-ProjectileFactory::ProjectileFactory(WorldTime const& worldTime, Factory& factory)
+ProjectileFactory::ProjectileFactory(WorldTime const& worldTime
+    , Factory& factory
+    , system::Render& render
+)
     : m_worldTime(worldTime)
     , m_factory(factory)
+    , m_render(render)
 {
 
 }
@@ -32,6 +45,29 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
     {
         component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
         positionComponent.position = order.position;
+    }
+
+    // Render
+    {
+        using unicorn::video::Primitives;
+
+        std::random_device rd;
+        std::mt19937 randEngine(rd());
+
+        std::uniform_real_distribution<> sizeDistribution(2.0, 7.0);
+        std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
+
+        system::Render::Material* pMaterial = new system::Render::Material();
+        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+
+        system::Render::Mesh* pMesh = m_render.SpawnMesh(*pMaterial);
+        Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
+
+        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
+
+        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        renderComp.pMesh = pMesh;
+        renderComp.pMaterial = pMaterial;
     }
 
     // Follow position

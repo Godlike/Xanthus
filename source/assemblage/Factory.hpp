@@ -4,6 +4,7 @@
 #include "WorldTime.hpp"
 
 #include "assemblage/ProjectileFactory.hpp"
+#include "assemblage/GridPlateFactory.hpp"
 
 #include "component/TimerComponent.hpp"
 #include "component/FollowPositionComponent.hpp"
@@ -77,9 +78,10 @@ public:
 private:
     struct CustomSpawners
     {
-        CustomSpawners(WorldTime& worldTime, Factory& factory);
+        CustomSpawners(WorldTime& worldTime, Factory& factory, Systems& systems);
 
         ProjectileFactory projectile;
+        GridPlateFactory gridplate;
     };
 
     void CreateDummy(Orders::Dummy const& order);
