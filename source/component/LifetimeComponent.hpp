@@ -16,6 +16,9 @@ struct LifetimeComponent : public Component
 {
     using Unit = WorldTime::TimeUnit;
 
+    LifetimeComponent() : LifetimeComponent(Unit(0)) {}
+    LifetimeComponent(Unit _deadline) : deadline(_deadline) {}
+
     Unit deadline;
 };
 

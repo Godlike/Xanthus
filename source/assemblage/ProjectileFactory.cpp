@@ -82,6 +82,7 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
 
         followComponent.onFail.connect(ProjectileFactory::Delete);
 
+        followComponent.onComplete = order.onComplete;
         followComponent.onComplete.connect(ProjectileFactory::Delete);
         followComponent.onComplete.connect(this, &ProjectileFactory::Hit);
     }

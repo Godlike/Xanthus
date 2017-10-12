@@ -22,6 +22,7 @@ public:
     ~Entity() = default;
 
     bool operator==(const Entity& other) const;
+    bool operator!=(const Entity& other) const { return !operator==(other); }
 
     EntityId GetId() const { return m_id; }
     bool IsValid() const;

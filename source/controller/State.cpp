@@ -1,5 +1,8 @@
 #include "controller/State.hpp"
 
+#include "component/FollowPositionComponent.hpp"
+#include "component/LifetimeComponent.hpp"
+
 #include <algorithm>
 
 namespace xanthus
@@ -46,6 +49,12 @@ void State::SelectNext()
     {
         m_selectedEntity = entity::Entity();
     }
+}
+
+void State::ResolveProjectile(entity::Entity projectile)
+{
+    component::FollowPositionComponent follow = projectile.GetComponent<component::FollowPositionComponent>();
+    follow.target.AddComponent<component::LifetimeComponent>();
 }
 
 State::State()

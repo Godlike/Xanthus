@@ -6,8 +6,7 @@
 #include "assemblage/ProjectileFactory.hpp"
 #include "assemblage/GridPlateFactory.hpp"
 
-#include "component/TimerComponent.hpp"
-#include "component/FollowPositionComponent.hpp"
+#include "component/GridComponent.hpp"
 
 #include <wink/event_queue.hpp>
 
@@ -36,13 +35,6 @@ public:
 
     struct Orders
     {
-        struct Dummy
-        {
-            glm::vec3 position;
-        };
-
-        wink::event_queue<Dummy> dummies;
-
         struct ParticleEffect
         {
             enum class Type : uint8_t
@@ -62,18 +54,13 @@ public:
 
         wink::event_queue<ParticleEffect> particleEffects;
 
-        struct Plane
-        {
-            glm::vec3 position;
-            glm::vec3 normal;
-        };
-
-        wink::event_queue<Plane> planes;
-
         using Projectile = assemblage::ProjectileFactory::Order;
 
         wink::event_queue<Projectile> projectiles;
     } orders;
+
+    entity::Entity CreateGridPlate(GridPlateFactory::Order order);
+    entity::Entity CreateDummy();
 
 private:
     struct CustomSpawners
@@ -84,9 +71,7 @@ private:
         GridPlateFactory gridplate;
     };
 
-    void CreateDummy(Orders::Dummy const& order);
     void CreateParticleEffect(Orders::ParticleEffect const& order);
-    void CreatePlane(Orders::Plane const& order);
     void CreateProjectile(Orders::Projectile const& order);
 
     WorldTime& m_worldTime;

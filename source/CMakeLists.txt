@@ -80,6 +80,9 @@ set(SYSTEM_SOURCES
     system/Render.cpp
     system/Render.hpp
 
+    system/SnapToGrid.cpp
+    system/SnapToGrid.hpp
+
     system/Time.cpp
     system/Time.hpp
 
@@ -104,6 +107,9 @@ set(CONTROLLER_SOURCES
 
     controller/State.cpp
     controller/State.hpp
+
+    controller/Zone.cpp
+    controller/Zone.hpp
 )
 
 add_executable(${PROJECT_NAME}

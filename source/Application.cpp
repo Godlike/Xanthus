@@ -1,6 +1,7 @@
 #include "Application.hpp"
 
 #include "controller/State.hpp"
+#include "controller/Zone.hpp"
 
 #include <iostream>
 
@@ -20,8 +21,6 @@ Application::Application(unicorn::Settings& settings)
     if (IsValid())
     {
         m_systems.GetRender().LogicFrame.connect(this, &Application::OnLogicFrame);
-
-        controller::State::Instance().Init(m_world);
     }
     else
     {
@@ -41,6 +40,10 @@ bool Application::IsValid() const
 
 void Application::Run()
 {
+    controller::Zone::Instance().Reset(0x1337, m_factory);
+
+    controller::State::Instance().Init(m_world);
+
     m_systems.GetRender().Run();
 }
 

@@ -1,11 +1,27 @@
 #include "controller/Grid.hpp"
 
+#include "component/LifetimeComponent.hpp"
+
 #include <algorithm>
 
 namespace xanthus
 {
 namespace controller
 {
+
+Grid::~Grid()
+{
+    for (auto & entities : m_grid)
+    {
+        for (auto & entity : entities.second)
+        {
+            if (entity.IsValid())
+            {
+                entity.AddComponent<component::LifetimeComponent>();
+            }
+        }
+    }
+}
 
 entity::World::Entities Grid::Get(Coordinates coords) const
 {

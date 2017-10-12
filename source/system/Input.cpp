@@ -5,6 +5,9 @@
 #include "assemblage/Factory.hpp"
 
 #include "controller/State.hpp"
+#include "controller/Zone.hpp"
+
+#include "component/PositionComponent.hpp"
 
 #include "system/Time.hpp"
 #include "system/Render.hpp"
@@ -154,37 +157,62 @@ void Input::Update()
                     break;
                 }
 
-                case Key::F:
+                case Key::Space:
                 {
                     using Projectile = Factory::Orders::Projectile;
 
-                    m_factory.orders.projectiles.push(Projectile{
-                        glm::vec3{0, 0, 0}
-                        , controller::State::Instance().GetSelected()
-                    });
-                    break;
-                }
-                case Key::Y:
-                {
-                    using Dummy = Factory::Orders::Dummy;
+                    controller::State& gameState = controller::State::Instance();
 
-                    std::random_device rd;
-                    std::mt19937 randEngine(rd());
+                    entity::Entity player = controller::Zone::Instance().GetPlayer();
+                    entity::Entity target = gameState.GetSelected();
 
-                    std::uniform_real_distribution<> posDistribution(-30.0f, 30.0f);
+                    if (!target.IsValid())
+                    {
+                        gameState.SelectNext();
+                        target = gameState.GetSelected();
+                    }
 
-                    m_factory.orders.dummies.push(Dummy{
-                        glm::vec3{
-                            posDistribution(randEngine)
-                            , posDistribution(randEngine)
-                            , posDistribution(randEngine)
-                        }
-                    });
+                    if (player == target)
+                    {
+                        gameState.SelectNext();
+                        target = gameState.GetSelected();
+                    }
+
+                    if (player != target)
+                    {
+                        Projectile projectile;
+
+                        projectile.position = player.GetComponent<component::PositionComponent>().position;
+                        projectile.target = target;
+                        projectile.onComplete.connect(&gameState, &controller::State::ResolveProjectile);
+
+                        m_factory.orders.projectiles.push(projectile);
+                    }
+                    else
+                    {
+                        controller::Zone& zone = controller::Zone::Instance();
+                        zone.Reset(zone.GetSeed() + 1, m_factory);
+                    }
+
                     break;
                 }
                 case Key::Tab:
                 {
                     controller::State::Instance().SelectNext();
+                    break;
+                }
+                case Key::LeftBracket:
+                {
+                    controller::Zone& zone = controller::Zone::Instance();
+                    zone.Reset(zone.GetSeed() - 1, m_factory);
+
+                    break;
+                }
+                case Key::RightBracket:
+                {
+                    controller::Zone& zone = controller::Zone::Instance();
+                    zone.Reset(zone.GetSeed() + 1, m_factory);
+
                     break;
                 }
 

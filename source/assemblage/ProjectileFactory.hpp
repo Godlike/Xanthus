@@ -29,6 +29,8 @@ public:
     {
         glm::vec3 position;
         entity::Entity target;
+
+        wink::signal< wink::slot<void(entity::Entity)> > onComplete;
     };
 
     ProjectileFactory(WorldTime const& worldTime

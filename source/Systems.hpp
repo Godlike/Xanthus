@@ -8,6 +8,7 @@
 #include "system/Lifetime.hpp"
 #include "system/physics/Physics.hpp"
 #include "system/Render.hpp"
+#include "system/SnapToGrid.hpp"
 #include "system/Time.hpp"
 #include "system/Timer.hpp"
 
@@ -46,6 +47,7 @@ private:
     system::Time m_time;
     system::Lifetime m_lifetime;
     system::Timer m_timer;
+    system::SnapToGrid m_snapToGrid;
     system::physics::Physics m_physics;
     system::animation::FollowAnimation m_followAnimation;
     system::Render m_render;

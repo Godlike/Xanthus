@@ -26,6 +26,8 @@ public:
     void SelectNext();
     entity::Entity const& GetSelected() const { return m_selectedEntity; }
 
+    void ResolveProjectile(entity::Entity projectile);
+
 private:
     friend class unicorn::utility::templates::Singleton<State>;
 

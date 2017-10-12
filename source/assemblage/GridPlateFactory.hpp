@@ -5,6 +5,8 @@
 
 #include "entity/Entity.hpp"
 
+#include "component/GridComponent.hpp"
+
 #include <glm/glm.hpp>
 
 namespace xanthus
@@ -25,12 +27,12 @@ class GridPlateFactory
 public:
     struct Order
     {
-        glm::vec3 position;
+        glm::vec3 offset;
     };
 
     GridPlateFactory(system::Render& render);
 
-    void Create(entity::Entity entity, Order const& order);
+    void Create(entity::Entity entity, Order order);
 
 private:
     system::Render& m_render;

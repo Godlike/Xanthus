@@ -17,6 +17,7 @@ Systems::Systems(unicorn::Settings& settings
     : m_time(worldTime, m_physics)
     , m_lifetime(world, worldTime, factory)
     , m_timer(world, worldTime)
+    , m_snapToGrid(world)
     , m_physics(world, worldTime)
     , m_followAnimation(world, worldTime)
     , m_render(world)
@@ -62,6 +63,11 @@ void Systems::Update(WorldTime::TimeUnit duration)
     {
         util::ScopeProfiler profiler("timer");
         m_timer.Update();
+    }
+
+    {
+        util::ScopeProfiler profiler("snap to grid");
+        m_snapToGrid.Update();
     }
 
     {

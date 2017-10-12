@@ -27,7 +27,7 @@ public:
     Grid(Grid const& other) = delete;
     Grid& operator=(Grid const& other) = delete;
 
-    ~Grid() = default;
+    ~Grid();
 
     entity::World::Entities Get(Coordinates coords) const;
     void Set(Coordinates coords, entity::World::Entities const& entities);
@@ -41,9 +41,8 @@ private:
         std::size_t operator()(Coordinates const& coords) const
         {
             return std::hash<uint64_t>{}(
-                (uint64_t(coords.x) << 48)
-                | (uint64_t(coords.y) << 32)
-                | (uint64_t(coords.z) << 16)
+                (uint64_t(coords.x) << 32)
+                | (uint64_t(coords.y) << 16)
                 | uint64_t(coords.alt)
             );
         }

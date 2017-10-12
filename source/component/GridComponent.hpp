@@ -13,22 +13,38 @@ namespace component
 struct GridComponent : public Component
 {
     GridComponent()
-        : GridComponent(0, 0, 0)
+        : GridComponent(0, 0)
     {
 
     }
 
-    GridComponent(int16_t _x, int16_t _y, int16_t _z, int16_t _alt = 0)
-        : x(_x), y(_y), z(_z), alt(_alt)
+    GridComponent(int16_t _x, int16_t _y, int16_t _alt = 0)
+        : x(_x), y(_y), alt(_alt)
     {
-        assert(0 == (x + y + z));
+
+    }
+
+    GridComponent(GridComponent const& other)
+        : x(other.x)
+        , y(other.y)
+        , alt(other.alt)
+    {
+
+    }
+
+    GridComponent& operator=(GridComponent const other)
+    {
+        x = other.x;
+        y = other.y;
+        alt = other.alt;
+
+        return *this;
     }
 
     bool operator==(GridComponent const& other) const
     {
         return x == other.x
             && y == other.y
-            && z == other.z
             && alt == other.alt;
     }
 
@@ -39,7 +55,6 @@ struct GridComponent : public Component
 
     int16_t x;
     int16_t y;
-    int16_t z;
 
     int16_t alt;
 };

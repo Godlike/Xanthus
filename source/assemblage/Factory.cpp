@@ -35,29 +35,7 @@ Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
     , m_systems(systems)
     , m_spawners(worldTime, *this, m_systems)
 {
-    orders.dummies.connect(this, &Factory::CreateDummy);
-
-    {
-        std::random_device rd;
-        std::mt19937 randEngine(rd());
-
-        std::uniform_real_distribution<> posDistribution(-30.0f, 30.0f);
-
-        for (int i = 0; i < 10; ++i)
-        {
-            orders.dummies.push(Factory::Orders::Dummy{
-                util::math::randvec3(posDistribution, randEngine)
-            });
-        }
-    }
-
     orders.particleEffects.connect(this, &Factory::CreateParticleEffect);
-
-    orders.planes.connect(this, &Factory::CreatePlane);
-    orders.planes.push(Factory::Orders::Plane{
-        glm::vec3{1.0f, 20.0f, 0.0f},
-        glm::vec3{0.0f, -1.0f, 0.0f}
-    });
 
     orders.projectiles.connect(this, &Factory::CreateProjectile);
 
@@ -66,8 +44,6 @@ Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
 
 void Factory::ExecuteOrders()
 {
-    orders.dummies.emit();
-    orders.planes.emit();
     orders.particleEffects.emit();
     orders.projectiles.emit();
 }
@@ -88,6 +64,15 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
     }
 }
 
+entity::Entity Factory::CreateGridPlate(GridPlateFactory::Order order)
+{
+    entity::Entity entity = m_world.CreateEntity();
+
+    m_spawners.gridplate.Create(entity, order);
+
+    return entity;
+}
+
 Factory::CustomSpawners::CustomSpawners(
     WorldTime& worldTime
     , Factory& factory
@@ -99,7 +84,7 @@ Factory::CustomSpawners::CustomSpawners(
 
 }
 
-void Factory::CreateDummy(Orders::Dummy const& order)
+entity::Entity Factory::CreateDummy()
 {
     entity::Entity entity = m_world.CreateEntity();
 
@@ -110,15 +95,15 @@ void Factory::CreateDummy(Orders::Dummy const& order)
 
     // Position
     {
-        component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
-        positionComponent.position = order.position;
+        entity.AddComponent<component::PositionComponent>();
     }
 
     // Render
     {
         using unicorn::video::Primitives;
 
-        double const scale = 5.0f;
+        glm::vec3 const scale = {2.5f, 5.0f, 2.5f};
+        glm::vec3 const offset = {0.0f, (-scale[1] / 2), 0.0f};
 
         std::random_device rd;
         std::mt19937 randEngine(rd());
@@ -135,6 +120,7 @@ void Factory::CreateDummy(Orders::Dummy const& order)
         for (auto& v : vertices)
         {
             v.pos *= scale;
+            v.pos += offset;
         }
 
         pMesh->SetMeshData(vertices, pMesh->GetIndices());
@@ -143,8 +129,10 @@ void Factory::CreateDummy(Orders::Dummy const& order)
         renderComp.pMesh = pMesh;
         renderComp.pMaterial = pMaterial;
 
-        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
+        pMesh->modelMatrix = glm::mat4(1);
     }
+
+    return entity;
 }
 
 void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
@@ -257,74 +245,6 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
             renderComp.pMesh = pMesh;
             renderComp.pMaterial = pMaterial;
-        }
-    }
-}
-
-void Factory::CreatePlane(Orders::Plane const& order)
-{
-    entity::Entity entity = m_world.CreateEntity();
-
-    // Position
-    {
-        component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
-        positionComponent.position = order.position;
-    }
-
-    // Physics
-    {
-        pegasus::geometry::Plane* pShape = new pegasus::geometry::Plane(
-            order.position, glm::normalize(order.normal)
-        );
-
-        component::PhysicsComponent& physicsComponent = entity.AddComponent<component::PhysicsComponent>();
-        physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
-            pShape
-            , order.position
-            , glm::dvec3{0}
-            , std::numeric_limits<double>::quiet_NaN()
-            , 0.98f
-            , false
-            , Force::Down
-        });
-    }
-
-    // Render
-    {
-        using unicorn::video::Primitives;
-
-        double const scale = 100.0f;
-
-        std::random_device rd;
-        std::mt19937 randEngine(rd());
-
-        std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
-
-        system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
-
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
-        Primitives::Quad(*pMesh);
-
-        std::vector<unicorn::video::Vertex> vertices = pMesh->GetVertices();
-        for (auto& v : vertices)
-        {
-            v.pos *= scale;
-        }
-
-        pMesh->SetMeshData(vertices, pMesh->GetIndices());
-
-        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
-        renderComp.pMesh = pMesh;
-        renderComp.pMaterial = pMaterial;
-
-        renderComp.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), order.normal));
-        renderComp.rotateAxes = glm::cross(glm::vec3(0, 0, 1), order.normal);
-
-        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
-        if (renderComp.rotateAngle != 0.0f)
-        {
-            pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
         }
     }
 }
