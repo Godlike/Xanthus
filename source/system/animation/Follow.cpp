@@ -1,4 +1,4 @@
-#include "system/animation/FollowAnimation.hpp"
+#include "system/animation/Follow.hpp"
 
 namespace xanthus
 {
@@ -7,7 +7,7 @@ namespace system
 namespace animation
 {
 
-FollowAnimation::FollowAnimation(entity::World& world
+Follow::Follow(entity::World& world
     , WorldTime& worldTime
 )
     : Skeleton<component::PositionComponent, component::FollowPositionComponent>(world)
@@ -16,7 +16,7 @@ FollowAnimation::FollowAnimation(entity::World& world
 
 }
 
-void FollowAnimation::Update()
+void Follow::Update()
 {
     WorldTime::TimeUnit now = m_worldTime.GetTime();
 

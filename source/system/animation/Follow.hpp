@@ -1,5 +1,5 @@
-#ifndef XANTHUS_SYSTEM_ANIMATION_FOLLOW_ANIMATION_HPP
-#define XANTHUS_SYSTEM_ANIMATION_FOLLOW_ANIMATION_HPP
+#ifndef XANTHUS_SYSTEM_ANIMATION_FOLLOW_HPP
+#define XANTHUS_SYSTEM_ANIMATION_FOLLOW_HPP
 
 #include "WorldTime.hpp"
 
@@ -17,12 +17,12 @@ namespace system
 namespace animation
 {
 
-class FollowAnimation : public Skeleton<component::PositionComponent, component::FollowPositionComponent>
+class Follow : public Skeleton<component::PositionComponent, component::FollowPositionComponent>
 {
 public:
-    FollowAnimation(entity::World& world
+    Follow(entity::World& world
         , WorldTime& worldTime);
-    ~FollowAnimation() = default;
+    ~Follow() = default;
 
     void Update();
 
@@ -34,4 +34,4 @@ private:
 }
 }
 
-#endif // XANTHUS_SYSTEM_ANIMATION_FOLLOW_ANIMATION_HPP
+#endif // XANTHUS_SYSTEM_ANIMATION_FOLLOW_HPP

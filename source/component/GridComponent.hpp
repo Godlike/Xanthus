@@ -1,9 +1,10 @@
 #ifndef XANTHUS_COMPONENT_GRID_COMPONENT_HPP
 #define XANTHUS_COMPONENT_GRID_COMPONENT_HPP
 
+#include "util/Config.hpp"
 #include "util/Types.hpp"
 
-#include <cassert>
+#include <glm/glm.hpp>
 
 namespace xanthus
 {
@@ -12,6 +13,29 @@ namespace component
 
 struct GridComponent : public Component
 {
+    struct Hasher
+    {
+        std::size_t operator()(GridComponent const& coords) const
+        {
+            return std::hash<uint64_t>{}(
+                (uint64_t(coords.x) << 32)
+                | (uint64_t(coords.y) << 16)
+                | uint64_t(coords.alt)
+            );
+        }
+    };
+
+    struct CoordinateHasher
+    {
+        std::size_t operator()(GridComponent const& coords) const
+        {
+            return std::hash<uint64_t>{}(
+                (uint64_t(coords.x) << 32)
+                | (uint64_t(coords.y) << 16)
+            );
+        }
+    };
+
     GridComponent()
         : GridComponent(0, 0)
     {
@@ -51,6 +75,19 @@ struct GridComponent : public Component
     bool operator!=(GridComponent const& other) const
     {
         return !operator==(other);
+    }
+
+    operator glm::vec3() const
+    {
+        static double const altMultiplier = 1.0f;
+        static double const spacing = 0.5f;
+        static double const sideMultiplier = util::Config::GridSide + spacing;
+
+        return glm::vec3{
+            sideMultiplier * x
+            , altMultiplier * alt
+            , sideMultiplier * y
+        };
     }
 
     int16_t x;

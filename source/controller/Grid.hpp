@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace xanthus
 {
@@ -22,6 +23,14 @@ class Grid
 public:
     using Coordinates = component::GridComponent;
 
+    struct Tile
+    {
+        Coordinates coordinates;
+        entity::World::Entities entities;
+
+        std::vector<Tile const*> neighbours;
+    };
+
     Grid() = default;
 
     Grid(Grid const& other) = delete;
@@ -29,27 +38,21 @@ public:
 
     ~Grid();
 
+    void CreateTile(Coordinates coords);
+    void BuildConnections();
+
     entity::World::Entities Get(Coordinates coords) const;
     void Set(Coordinates coords, entity::World::Entities const& entities);
 
     void Add(Coordinates coords, entity::Entity entity);
     void Remove(Coordinates coords, entity::Entity entity);
+    void Remove(entity::Entity entity);
+
+    Tile const& GetTile(Coordinates coords) const;
 
 private:
-    struct CoordinateHasher
-    {
-        std::size_t operator()(Coordinates const& coords) const
-        {
-            return std::hash<uint64_t>{}(
-                (uint64_t(coords.x) << 32)
-                | (uint64_t(coords.y) << 16)
-                | uint64_t(coords.alt)
-            );
-        }
-    };
-
-    std::unordered_map<Coordinates, entity::World::Entities, CoordinateHasher> m_grid;
-    std::unordered_map<EntityId, Coordinates> m_reverseGrid;
+    std::unordered_map<Coordinates, Tile, Coordinates::Hasher> m_grid;
+    std::unordered_multiset<Coordinates, Coordinates::CoordinateHasher> m_coords;
 };
 
 }

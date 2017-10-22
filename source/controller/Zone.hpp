@@ -3,9 +3,8 @@
 
 #include "assemblage/Factory.hpp"
 
-#include "entity/Entity.hpp"
-
 #include "controller/Grid.hpp"
+#include "controller/Player.hpp"
 
 #include <unicorn/utility/templates/Singleton.hpp>
 
@@ -20,7 +19,7 @@ public:
     uint64_t GetSeed() const { return m_seed; }
     void Reset(uint64_t seed, assemblage::Factory& factory);
 
-    entity::Entity GetPlayer() const { return m_player; }
+    Player& GetPlayer() const { return *m_player.get(); }
 
 private:
     friend class unicorn::utility::templates::Singleton<Zone>;
@@ -34,8 +33,7 @@ private:
 
     uint64_t m_seed;
     std::unique_ptr<Grid> m_grid;
-
-    entity::Entity m_player;
+    std::unique_ptr<Player> m_player;
 };
 
 }

@@ -44,6 +44,7 @@ set(COMPONENT_SOURCES
     component/Flags.imp
 
     component/DummyComponent.hpp
+    component/EntitySnapComponent.hpp
     component/LifetimeComponent.hpp
     component/PhysicsComponent.hpp
     component/PositionComponent.hpp
@@ -59,11 +60,16 @@ set(SYSTEM_SOURCES
     system/animation/Filter.hpp
     system/animation/Linear.cpp
     system/animation/Linear.hpp
-    system/animation/FollowAnimation.cpp
-    system/animation/FollowAnimation.hpp
+    system/animation/Move.cpp
+    system/animation/Move.hpp
+    system/animation/Follow.cpp
+    system/animation/Follow.hpp
 
     system/Input.cpp
     system/Input.hpp
+
+    system/Intent.cpp
+    system/Intent.hpp
 
     system/Lifetime.cpp
     system/Lifetime.hpp
@@ -79,6 +85,9 @@ set(SYSTEM_SOURCES
 
     system/Render.cpp
     system/Render.hpp
+
+    system/SnapToEntity.cpp
+    system/SnapToEntity.hpp
 
     system/SnapToGrid.cpp
     system/SnapToGrid.hpp
@@ -105,12 +114,24 @@ set(CONTROLLER_SOURCES
     controller/Grid.cpp
     controller/Grid.hpp
 
+    controller/Player.cpp
+    controller/Player.hpp
+
     controller/State.cpp
     controller/State.hpp
 
     controller/Zone.cpp
     controller/Zone.hpp
 )
+
+set(INTENT_SOURCES
+    intent/Intent.cpp
+    intent/Intent.hpp
+
+    intent/GridMove.cpp
+    intent/GridMove.hpp
+)
+
 
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -132,6 +153,7 @@ add_executable(${PROJECT_NAME}
     ${UTIL_SOURCES}
 
     ${CONTROLLER_SOURCES}
+    ${INTENT_SOURCES}
 )
 
 target_link_libraries(${PROJECT_NAME} ${Unicorn_LIB} ${Pegasus_LIB} ${CMAKE_THREAD_LIBS_INIT})

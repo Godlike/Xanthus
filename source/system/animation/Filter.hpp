@@ -7,8 +7,9 @@ namespace xanthus
 namespace component
 {
 
-struct PositionComponent;
 struct FollowPositionComponent;
+struct MoveComponent;
+struct PositionComponent;
 
 }
 
@@ -21,6 +22,12 @@ typedef void (*FilterFunc)(
     WorldTime::TimeUnit now
     , component::PositionComponent& positionComponent
     , component::FollowPositionComponent& followComponent
+);
+
+typedef void (*MoveFilterFunc)(
+    WorldTime::TimeUnit now
+    , component::PositionComponent& positionComponent
+    , component::MoveComponent& moveComponent
 );
 
 }

@@ -9,6 +9,7 @@
 
 #include "component/PositionComponent.hpp"
 
+#include "system/Intent.hpp"
 #include "system/Time.hpp"
 #include "system/Render.hpp"
 
@@ -25,12 +26,14 @@ namespace system
 Input::Input(unicorn::UnicornRender& render
     , WorldTime& worldTime
     , Time& timeSystem
+    , Intent& intents
     , Render& renderSystem
     , assemblage::Factory& factory
 )
     : m_unicornRender(render)
     , m_worldTime(worldTime)
     , m_timeSystem(timeSystem)
+    , m_intents(intents)
     , m_renderSystem(renderSystem)
     , m_factory(factory)
 {
@@ -163,7 +166,7 @@ void Input::Update()
 
                     controller::State& gameState = controller::State::Instance();
 
-                    entity::Entity player = controller::Zone::Instance().GetPlayer();
+                    entity::Entity player = controller::Zone::Instance().GetPlayer().GetEntity();
                     entity::Entity target = gameState.GetSelected();
 
                     if (!target.IsValid())
@@ -216,6 +219,51 @@ void Input::Update()
                     break;
                 }
 
+                case Key::Num_2:
+                {
+                    controller::Player& player = controller::Zone::Instance().GetPlayer();
+
+                    m_intents.Register({
+                        0
+                        , player.GetEntity()
+                        , player.Move(0, -1)
+                    });
+                    break;
+                }
+                case Key::Num_4:
+                {
+                    controller::Player& player = controller::Zone::Instance().GetPlayer();
+
+                    m_intents.Register({
+                        0
+                        , player.GetEntity()
+                        , player.Move(-1, 0)
+                    });
+                    break;
+                }
+                case Key::Num_6:
+                {
+                    controller::Player& player = controller::Zone::Instance().GetPlayer();
+
+                    m_intents.Register({
+                        0
+                        , player.GetEntity()
+                        , player.Move(1, 0)
+                    });
+                    break;
+                }
+                case Key::Num_8:
+                {
+                    controller::Player& player = controller::Zone::Instance().GetPlayer();
+
+                    m_intents.Register({
+                        0
+                        , player.GetEntity()
+                        , player.Move(0, 1)
+                    });
+                    break;
+                }
+
                 default:
                 {
                     break;
@@ -225,43 +273,29 @@ void Input::Update()
     }
 
     // Apply mouse
-    {
-        using input::MouseButton;
-        using ParticleEffect = Factory::Orders::ParticleEffect;
+    // {
+    //     using input::MouseButton;
+    //     using ParticleEffect = Factory::Orders::ParticleEffect;
 
-        for (MouseButton const& mouse : pressedMouse)
-        {
-            switch (mouse)
-            {
-                case MouseButton::MouseLeft:
-                {
-                    m_factory.orders.particleEffects.push(ParticleEffect{
-                        glm::vec3{0, 0, 0}
-                        , glm::vec3{0, 0, 0}
-                        , WorldTime::TimeUnit(std::chrono::seconds(5))
-                        , 2
-                        , ParticleEffect::Type::Down
-                    });
-                    break;
-                }
-                case MouseButton::MouseRight:
-                {
-                    m_factory.orders.particleEffects.push(ParticleEffect{
-                        glm::vec3{0, 20.0f, 0}
-                        , glm::vec3{0, 0, 0}
-                        , WorldTime::TimeUnit(std::chrono::seconds(5))
-                        , 2
-                        , ParticleEffect::Type::Up
-                    });
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-        }
-    }
+    //     for (MouseButton const& mouse : pressedMouse)
+    //     {
+    //         switch (mouse)
+    //         {
+    //             case MouseButton::MouseLeft:
+    //             {
+    //                 break;
+    //             }
+    //             case MouseButton::MouseRight:
+    //             {
+    //                 break;
+    //             }
+    //             default:
+    //             {
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
 
     m_lastKeys = std::move(pressedKeys);
 }

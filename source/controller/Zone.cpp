@@ -2,7 +2,8 @@
 
 #include "util/Config.hpp"
 
-#include <iostream>
+#include "component/EntitySnapComponent.hpp"
+
 #include <random>
 
 namespace xanthus
@@ -13,9 +14,11 @@ namespace controller
 void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
 {
     m_seed = seed;
-    m_player = entity::Entity();
 
-    m_grid.reset(new Grid());
+    Grid* pGrid = new Grid();
+
+    m_player.reset(new Player(factory.CreateDummy(), *pGrid));
+    m_grid.reset(pGrid);
 
     std::mt19937_64 engine(seed);
 
@@ -28,7 +31,9 @@ void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
 
     std::binomial_distribution<> altGenerator(altSwing * 2, altChance(engine));
 
-    std::bernoulli_distribution dummyGenerator(0.2);
+    std::bernoulli_distribution dummyGenerator(1e-1);
+
+    bool playerSet = false;
 
     for (uint32_t x = 0; x < 8; ++x)
     {
@@ -37,14 +42,9 @@ void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
             if (plateGenerator(engine))
             {
                 Grid::Coordinates coords(x, y, altGenerator(engine) - altSwing);
+                m_grid->CreateTile(coords);
 
-                std::cerr << "Creating plate " << x << ":" << y << std::endl;
-
-                m_grid->Add(coords, factory.CreateGridPlate(assemblage::GridPlateFactory::Order{
-                    glm::vec3{0, 0, 0}
-                }));
-
-                if (m_player.IsValid())
+                if (playerSet)
                 {
                     if (dummyGenerator(engine))
                     {
@@ -53,21 +53,27 @@ void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
                 }
                 else
                 {
-                    m_player = factory.CreateDummy();
-                    m_grid->Add(coords, m_player);
+                    playerSet = true;
+                    m_grid->Add(coords, m_player->GetEntity());
 
-                    m_grid->Add(coords, factory.CreateGridPlate(assemblage::GridPlateFactory::Order{
+                    component::EntitySnapComponent& snapComp = factory.CreateGridPlate(assemblage::GridPlateFactory::Order{
                         glm::vec3{0.0f, 0.0f, -1.0f}
-                    }));
+                    }).AddComponent<component::EntitySnapComponent>();
+
+                    snapComp.entity = m_player->GetEntity();
+                    snapComp.offset = glm::vec3(0);
                 }
             }
         }
     }
+
+    m_grid->BuildConnections();
 }
 
 Zone::Zone()
     : m_seed(0)
-    , m_grid(nullptr)
+    , m_grid(new Grid())
+    , m_player(new Player(entity::Entity(), *m_grid.get()))
 {
 
 }
