@@ -128,8 +128,6 @@ entity::Entity Factory::CreateDummy()
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
         renderComp.pMaterial = pMaterial;
-
-        pMesh->modelMatrix = glm::mat4(1);
     }
 
     return entity;
@@ -216,7 +214,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             {
                 case Orders::ParticleEffect::Type::Up:
                 {
-                    Primitives::Cube(*pMesh);
+                    Primitives::Box(*pMesh);
 
                     std::vector<unicorn::video::Vertex> vertices = pMesh->GetVertices();
                     for (auto& v : vertices)
@@ -236,7 +234,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 }
             }
 
-            pMesh->modelMatrix = glm::translate(glm::mat4(1), glm::vec3{
+            pMesh->SetTranslation(glm::vec3{
                 std::numeric_limits<double>::quiet_NaN()
                 , std::numeric_limits<double>::quiet_NaN()
                 , std::numeric_limits<double>::quiet_NaN()

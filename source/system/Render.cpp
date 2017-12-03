@@ -55,13 +55,14 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
         nullptr,
         nullptr);
 
-    m_pVkRenderer = pGraphics->SpawnRenderer(pWindow);
+    m_pVkRenderer = pGraphics->SpawnRenderer(pWindow, m_camera);
 
     m_pVkRenderer->SetBackgroundColor(unicorn::video::Color::LightPink());
 
     m_pVkRenderer->Destroyed.connect(this, &Render::OnRendererDestroyed);
 
-    pCameraController = new unicorn::video::CameraFpsController(m_pVkRenderer->GetCamera());
+    pCameraProjection = new unicorn::video::PerspectiveCamera(*pWindow, m_camera.projection);
+    pCameraController = new unicorn::video::CameraFpsController(m_camera.view);
 }
 
 void Render::Update()
@@ -73,11 +74,11 @@ void Render::Update()
         component::PositionComponent const& posComp = entity.GetComponent<component::PositionComponent>();
         component::RenderComponent const& renderComp = entity.GetComponent<component::RenderComponent>();
 
-        renderComp.pMesh->modelMatrix = glm::translate(glm::mat4(1), posComp.position);
+        renderComp.pMesh->SetTranslation(posComp.position);
 
         if (renderComp.rotateAngle != 0.0f)
         {
-            renderComp.pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
+            // renderComp.pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
         }
     }
 

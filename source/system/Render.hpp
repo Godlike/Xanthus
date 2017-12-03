@@ -12,10 +12,12 @@
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
 
+#include <unicorn/video/Camera.hpp>
 #include <unicorn/video/CameraFpsController.hpp>
-#include <unicorn/video/Renderer.hpp>
-#include <unicorn/video/Mesh.hpp>
 #include <unicorn/video/Material.hpp>
+#include <unicorn/video/Mesh.hpp>
+#include <unicorn/video/Renderer.hpp>
+#include <unicorn/video/PerspectiveCamera.hpp>
 
 #include <list>
 
@@ -46,6 +48,8 @@ private:
     void OnRendererDestroyed(unicorn::video::Renderer* pRenderer);
 
     unicorn::video::Renderer* m_pVkRenderer;
+    unicorn::video::Camera m_camera;
+    unicorn::video::PerspectiveCamera* pCameraProjection;
 };
 
 }

@@ -2,6 +2,7 @@
 
 #include "component/LifetimeComponent.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 
 #include <algorithm>

@@ -64,14 +64,16 @@ void GridPlateFactory::Create(entity::Entity entity, Order order)
         renderComp.pMesh = pMesh;
         renderComp.pMaterial = pMaterial;
 
-        renderComp.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), normal));
-        renderComp.rotateAxes = glm::cross(glm::vec3(0, 0, 1), normal);
+        // renderComp.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), normal));
+        // renderComp.rotateAxes = glm::cross(glm::vec3(0, 0, 1), normal);
 
-        pMesh->modelMatrix = glm::translate(glm::mat4(1), position);
-        if (renderComp.rotateAngle != 0.0f)
-        {
-            pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
-        }
+        renderComp.pMesh->Rotate(normal * static_cast<float>(std::acos(0)));
+
+        pMesh->SetTranslation(position);
+        // if (renderComp.rotateAngle != 0.0f)
+        // {
+        //     pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
+        // }
     }
 }
 

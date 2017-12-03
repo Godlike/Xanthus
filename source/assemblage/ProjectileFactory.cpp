@@ -63,7 +63,7 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
         system::Render::Mesh* pMesh = m_render.SpawnMesh(*pMaterial);
         Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
 
-        pMesh->modelMatrix = glm::translate(glm::mat4(1), order.position);
+        pMesh->SetTranslation(order.position);
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;

@@ -90,6 +90,12 @@ void Input::Update()
 
         assert(nullptr != m_renderSystem.pCameraController);
 
+        glm::vec3 cameraTranslation = m_renderSystem.pCameraController->GetTranslation();
+
+        glm::vec3 const cameraDirection = m_renderSystem.pCameraController->GetDirection();
+        glm::vec3 const cameraRight = m_renderSystem.pCameraController->GetRight();
+        glm::vec3 const cameraUp = m_renderSystem.pCameraController->GetUp();
+
         for (Key const& key : pressedKeys)
         {
             switch (key)
@@ -109,32 +115,32 @@ void Input::Update()
 
                 case Key::W:
                 {
-                    m_renderSystem.pCameraController->MoveForward(cameraMovementSpeed);
+                    cameraTranslation += cameraDirection * cameraMovementSpeed;
                     break;
                 }
                 case Key::S:
                 {
-                    m_renderSystem.pCameraController->MoveBackward(cameraMovementSpeed);
+                    cameraTranslation -= cameraDirection * cameraMovementSpeed;
                     break;
                 }
                 case Key::A:
                 {
-                    m_renderSystem.pCameraController->MoveLeft(cameraMovementSpeed);
+                    cameraTranslation -= cameraRight * cameraMovementSpeed;
                     break;
                 }
                 case Key::D:
                 {
-                    m_renderSystem.pCameraController->MoveRight(cameraMovementSpeed);
+                    cameraTranslation += cameraRight * cameraMovementSpeed;
                     break;
                 }
                 case Key::Q:
                 {
-                    m_renderSystem.pCameraController->MoveUp(cameraMovementSpeed);
+                    cameraTranslation -= cameraUp * cameraMovementSpeed;
                     break;
                 }
                 case Key::E:
                 {
-                    m_renderSystem.pCameraController->MoveDown(cameraMovementSpeed);
+                    cameraTranslation += cameraUp * cameraMovementSpeed;
                     break;
                 }
 
@@ -144,6 +150,8 @@ void Input::Update()
                 }
             }
         }
+
+        m_renderSystem.pCameraController->SetTranslation(cameraTranslation);
 
         for (Key const& key : newKeys)
         {

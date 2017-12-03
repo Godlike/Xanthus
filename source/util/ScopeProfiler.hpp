@@ -20,6 +20,7 @@ public:
 
     ~ScopeProfiler()
     {
+        return;
         std::cerr << "[Profiler] #" << m_name << " "
             << std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - m_start).count() << "us"
             << std::endl;
