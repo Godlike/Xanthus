@@ -103,7 +103,7 @@ entity::Entity Factory::CreateDummy()
         using unicorn::video::Primitives;
 
         glm::vec3 const scale = {2.5f, 5.0f, 2.5f};
-        glm::vec3 const offset = {0.0f, (-scale[1] / 2), 0.0f};
+        glm::vec3 const offset = {0.0f, (scale[1] / 2), 0.0f};
 
         std::random_device rd;
         std::mt19937 randEngine(rd());
@@ -235,10 +235,11 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             }
 
             pMesh->SetTranslation(glm::vec3{
-                std::numeric_limits<double>::quiet_NaN()
-                , std::numeric_limits<double>::quiet_NaN()
-                , std::numeric_limits<double>::quiet_NaN()
+                std::numeric_limits<float>::quiet_NaN()
+                , std::numeric_limits<float>::quiet_NaN()
+                , std::numeric_limits<float>::quiet_NaN()
             });
+            pMesh->UpdateModelMatrix();
 
             component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
             renderComp.pMesh = pMesh;

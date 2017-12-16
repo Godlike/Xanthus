@@ -1,5 +1,7 @@
 #include "system/SnapToEntity.hpp"
 
+#include <iostream>
+
 namespace xanthus
 {
 namespace system

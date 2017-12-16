@@ -85,12 +85,12 @@ void Input::Update()
     {
         using input::Key;
 
-        static float const cameraMovementSpeed = 0.01f;
+        static float const cameraMovementSpeed = 0.1f;
         static float const timeFactorMultuplier = 0.95f;
 
         assert(nullptr != m_renderSystem.pCameraController);
 
-        glm::vec3 cameraTranslation = m_renderSystem.pCameraController->GetTranslation();
+        glm::vec3 cameraTranslation{0, 0, 0};
 
         glm::vec3 const cameraDirection = m_renderSystem.pCameraController->GetDirection();
         glm::vec3 const cameraRight = m_renderSystem.pCameraController->GetRight();
@@ -125,12 +125,12 @@ void Input::Update()
                 }
                 case Key::A:
                 {
-                    cameraTranslation -= cameraRight * cameraMovementSpeed;
+                    cameraTranslation += cameraRight * cameraMovementSpeed;
                     break;
                 }
                 case Key::D:
                 {
-                    cameraTranslation += cameraRight * cameraMovementSpeed;
+                    cameraTranslation -= cameraRight * cameraMovementSpeed;
                     break;
                 }
                 case Key::Q:
@@ -151,7 +151,8 @@ void Input::Update()
             }
         }
 
-        m_renderSystem.pCameraController->SetTranslation(cameraTranslation);
+        m_renderSystem.pCameraController->TranslateWorld(cameraTranslation);
+        m_renderSystem.pCameraController->Update();
 
         for (Key const& key : newKeys)
         {
@@ -245,7 +246,7 @@ void Input::Update()
                     m_intents.Register({
                         0
                         , player.GetEntity()
-                        , player.Move(-1, 0)
+                        , player.Move(1, 0)
                     });
                     break;
                 }
@@ -256,7 +257,7 @@ void Input::Update()
                     m_intents.Register({
                         0
                         , player.GetEntity()
-                        , player.Move(1, 0)
+                        , player.Move(-1, 0)
                     });
                     break;
                 }

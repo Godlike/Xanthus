@@ -75,11 +75,7 @@ void Render::Update()
         component::RenderComponent const& renderComp = entity.GetComponent<component::RenderComponent>();
 
         renderComp.pMesh->SetTranslation(posComp.position);
-
-        if (renderComp.rotateAngle != 0.0f)
-        {
-            // renderComp.pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
-        }
+        renderComp.pMesh->UpdateModelMatrix();
     }
 
     std::cerr << "[Render] entity count: " << entities.size() << std::endl;

@@ -3,6 +3,7 @@
 #include "intent/GridMove.hpp"
 
 #include "component/GridComponent.hpp"
+#include "component/LifetimeComponent.hpp"
 
 namespace xanthus
 {
@@ -16,6 +17,14 @@ Player::Player(entity::Entity entity
     , m_grid(grid)
 {
 
+}
+
+Player::~Player()
+{
+	if (m_entity.IsValid())
+    {
+        m_entity.AddComponent<component::LifetimeComponent>();
+    }
 }
 
 intent::IntentPtr Player::Move(int16_t x, int16_t y)

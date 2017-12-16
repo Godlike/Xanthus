@@ -64,6 +64,7 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
         Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
 
         pMesh->SetTranslation(order.position);
+        pMesh->UpdateModelMatrix();
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
@@ -101,8 +102,7 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
 
 void ProjectileFactory::Delete(entity::Entity entity)
 {
-    LifetimeComponent& lifetimeComp = entity.AddComponent<LifetimeComponent>();
-    lifetimeComp.deadline = WorldTime::TimeUnit(0);
+    entity.AddComponent<LifetimeComponent>();
 }
 
 void ProjectileFactory::Tick(entity::Entity entity)

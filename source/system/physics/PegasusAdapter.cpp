@@ -35,8 +35,8 @@ void PegasusAdapter::Init()
 
         m_forces.resize(static_cast<std::size_t>(Force::Count));
 
-        m_forces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, force, 0});
-        m_forces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, -force, 0});
+        m_forces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, -force, 0});
+        m_forces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, force, 0});
     }
 }
 

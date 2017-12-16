@@ -34,6 +34,7 @@ private:
     uint64_t m_seed;
     std::unique_ptr<Grid> m_grid;
     std::unique_ptr<Player> m_player;
+    entity::Entity m_gridPlate;
 };
 
 }

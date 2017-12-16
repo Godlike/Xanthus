@@ -11,6 +11,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <random>
+
 namespace xanthus
 {
 namespace assemblage
@@ -28,7 +30,7 @@ void GridPlateFactory::Create(entity::Entity entity, Order order)
 {
     glm::vec3 const position{0, 0, 0};
 
-    glm::vec3 const normal{0.0f, -1.0f, 0.0f};
+    glm::vec3 const normal{0.0f, 1.0f, 0.0f};
 
     // Position
     {
@@ -64,16 +66,13 @@ void GridPlateFactory::Create(entity::Entity entity, Order order)
         renderComp.pMesh = pMesh;
         renderComp.pMaterial = pMaterial;
 
-        // renderComp.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), normal));
-        // renderComp.rotateAxes = glm::cross(glm::vec3(0, 0, 1), normal);
-
-        renderComp.pMesh->Rotate(normal * static_cast<float>(std::acos(0)));
+        renderComp.rotateAngle = std::acos(glm::dot(glm::vec3(0, 0, 1), normal));
+        renderComp.rotateAxes = glm::cross(glm::vec3(0, 0, 1), normal);
 
         pMesh->SetTranslation(position);
-        // if (renderComp.rotateAngle != 0.0f)
-        // {
-        //     pMesh->modelMatrix = glm::rotate(renderComp.pMesh->modelMatrix, renderComp.rotateAngle, renderComp.rotateAxes);
-        // }
+        pMesh->SetRotation(renderComp.rotateAxes * renderComp.rotateAngle);
+
+        pMesh->UpdateModelMatrix();
     }
 }
 

@@ -29,7 +29,7 @@ public:
     Player(Player const& other) = delete;
     Player& operator=(Player const& other) = delete;
 
-    ~Player() = default;
+    ~Player();
 
     entity::Entity GetEntity() const { return m_entity; }
 
