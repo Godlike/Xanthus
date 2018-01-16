@@ -5,7 +5,7 @@
 
 #include "util/Types.hpp"
 
-#include <pegasus/Geometry.hpp>
+#include <Arion/Shape.hpp>
 
 namespace xanthus
 {
@@ -16,14 +16,13 @@ namespace physics
 
 struct SpawnInfo
 {
-    pegasus::geometry::SimpleShape* pShape;
+    arion::SimpleShape* pShape;
     glm::dvec3 position;
     glm::dvec3 velocity;
 
     double mass;
     double damping;
 
-    bool generateContacts;
     Force force;
 };
 

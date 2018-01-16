@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include <pegasus/Mechanics.hpp>
+#include <pegasus/Scene.hpp>
 
 namespace xanthus
 {
@@ -14,7 +14,7 @@ namespace physics
 
 struct BodyHandle
 {
-    std::atomic<pegasus::RigidBody const*> pBody;
+    std::atomic<pegasus::scene::Handle> bodyHandle;
 };
 
 }

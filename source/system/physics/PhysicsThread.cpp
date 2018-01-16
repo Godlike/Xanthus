@@ -56,7 +56,7 @@ PhysicsThread::BodyPositions* PhysicsThread::GetBodyPositions() const
 BodyHandle* PhysicsThread::SpawnBody(SpawnInfo const& info)
 {
     BodyHandle* pHandle = new BodyHandle();
-    pHandle->pBody.store(nullptr);
+    pHandle->bodyHandle.store(pegasus::scene::Handle());
 
     {
         std::lock_guard<std::mutex> lock(m_spawner.mutex);
@@ -136,17 +136,17 @@ void PhysicsThread::PollPositions()
 
     {
         BodyPositions& newPositions = *pNewPositions;
-        newPositions.reserve(m_physicsEngine.bodyCount + 1);
+        newPositions.reserve(m_physicsEngine.primitiveCount + 1);
 
-        newPositions[nullptr] = glm::dvec3{
+        newPositions[pegasus::scene::Handle()] = glm::dvec3{
             std::numeric_limits<double>::quiet_NaN()
             , std::numeric_limits<double>::quiet_NaN()
             , std::numeric_limits<double>::quiet_NaN()
         };
 
-        for (pegasus::RigidBody const& body : m_physicsEngine.rigidBodies)
+        for (pegasus::scene::Primitive const* const primitive : m_physicsEngine.primitives)
         {
-            newPositions[&body] = body.p.GetPosition();
+            newPositions[primitive->GetBodyHandle()] = primitive->GetBody().linearMotion.position;
         }
     }
 
@@ -166,12 +166,9 @@ void PhysicsThread::CheckDeleter()
 
         if (order.deleteTime <= m_timeControl.currentTime)
         {
-            pegasus::RigidBody const* pBody = order.pHandle->pBody.load();
+            pegasus::scene::Handle bodyHandle = order.pHandle->bodyHandle.load();
 
-            if (pBody)
-            {
-                m_physicsEngine.DeleteBody(pBody);
-            }
+            m_physicsEngine.DeleteBody(bodyHandle);
 
             m_deletedHandles.insert(order.pHandle);
             delete order.pHandle;
@@ -213,13 +210,18 @@ void PhysicsThread::CheckSpawner()
 
         if (order.spawnTime <= m_timeControl.currentTime)
         {
-            order.pHandle->pBody.store(m_physicsEngine.SpawnBody(order.info));
+            pegasus::scene::Handle bodyHandle = m_physicsEngine.SpawnBody(order.info);
+
+            assert(pegasus::scene::Handle() != bodyHandle);
+
+            order.pHandle->bodyHandle.store(bodyHandle);
         }
         else
         {
             break;
         }
 
+        delete it->info.pShape;
         it = m_spawner.orders.erase(it);
     }
 }

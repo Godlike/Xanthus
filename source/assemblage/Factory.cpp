@@ -19,6 +19,8 @@
 
 #include <unicorn/video/Primitives.hpp>
 
+#include <Arion/Shape.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <cmath>
@@ -167,14 +169,14 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
 
         // Physics
         {
-            pegasus::geometry::SimpleShape* pShape = nullptr;
+            arion::SimpleShape* pShape = nullptr;
             Force force = Force::Down;
 
             switch (order.type)
             {
                 case Orders::ParticleEffect::Type::Up:
                 {
-                    pShape = new pegasus::geometry::Box(pos
+                    pShape = new arion::Box(pos
                         , glm::dvec3{1, 0, 0} * side
                         , glm::dvec3{0, 1, 0} * side
                         , glm::dvec3{0, 0, 1} * side
@@ -184,7 +186,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 case Orders::ParticleEffect::Type::Down:
                 default:
                 {
-                    pShape = new pegasus::geometry::Sphere(pos, side);
+                    pShape = new arion::Sphere(pos, side);
                     break;
                 }
             }
@@ -196,7 +198,6 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 , util::math::randvec3(velocityDistribution, randEngine) + order.velocity
                 , side
                 , 0.98f
-                , true
                 , force
             });
         }

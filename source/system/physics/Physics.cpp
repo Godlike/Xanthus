@@ -36,7 +36,7 @@ void Physics::Update()
         component::PositionComponent& posComp = entity.GetComponent<component::PositionComponent>();
         component::PhysicsComponent const& physComp = entity.GetComponent<component::PhysicsComponent>();
 
-        PhysicsThread::BodyPositions::const_iterator cit = positions.find(physComp.pHandle->pBody.load());
+        PhysicsThread::BodyPositions::const_iterator cit = positions.find(physComp.pHandle->bodyHandle.load());
 
         if (positions.cend() != cit)
         {

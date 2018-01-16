@@ -5,11 +5,7 @@
 
 #include "system/physics/SpawnInfo.hpp"
 
-#include <pegasus/Mechanics.hpp>
-#include <pegasus/Particle.hpp>
-#include <pegasus/ParticleContacts.hpp>
-#include <pegasus/ParticleForceGenerator.hpp>
-#include <pegasus/ParticleWorld.hpp>
+#include <pegasus/Scene.hpp>
 
 #include <cstddef>
 #include <list>
@@ -26,35 +22,26 @@ namespace physics
 class PegasusAdapter
 {
 public:
-    using RigidBodies = std::list<pegasus::RigidBody>;
+    using Primitives = std::list<pegasus::scene::Primitive*>;
 
     PegasusAdapter();
     ~PegasusAdapter() = default;
 
     void Init();
 
-    pegasus::RigidBody* SpawnBody(SpawnInfo const& info);
-    void DeleteBody(pegasus::RigidBody const* pBody);
+    pegasus::scene::Handle SpawnBody(SpawnInfo const& info);
+    void DeleteBody(pegasus::scene::Handle bodyHandle);
 
     void Run(WorldTime::TimeUnit tick);
 
-    RigidBodies rigidBodies;
-    std::size_t bodyCount;
+    Primitives primitives;
+    std::size_t primitiveCount;
 
 private:
-    using Particles = pegasus::Particles;
-    using ForceGenerators = std::vector<std::unique_ptr<pegasus::ParticleForceGenerator>>;
+    using Forces = std::vector<std::unique_ptr<pegasus::scene::Force<pegasus::force::StaticField>>>;
 
-    using RigidContactMap = std::map<pegasus::RigidBody*, pegasus::ParticleContactGenerator*>;
-
-    Particles m_particles;
-    ForceGenerators m_forces;
-
-    pegasus::ParticleForceRegistry m_physicsForceRegistry;
-    pegasus::ParticleContactGenerators m_physicsContactGenerators;
-    pegasus::ParticleWorld m_physicsWorld;
-
-    RigidContactMap m_rigidContactMap;
+    pegasus::scene::Scene& m_scene;
+    Forces m_forces;
 };
 
 }

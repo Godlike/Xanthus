@@ -1,5 +1,7 @@
 #include "system/physics/PegasusAdapter.hpp"
 
+#include <Arion/Shape.hpp>
+
 #include "util/Config.hpp"
 
 namespace xanthus
@@ -10,24 +12,15 @@ namespace physics
 {
 
 PegasusAdapter::PegasusAdapter()
-    : bodyCount(0)
-    , m_physicsWorld(m_particles
-        , m_physicsForceRegistry
-        , m_physicsContactGenerators
-        , util::Config::MaxPhysicsObjects * util::Config::MaxPhysicsObjects
-        , 5000)
+    : primitiveCount(0)
+    , m_scene(pegasus::scene::Scene::GetInstance())
 {
 
 }
 
 void PegasusAdapter::Init()
 {
-    m_rigidContactMap.clear();
-    rigidBodies.clear();
-    m_forces.clear();
-    m_particles.clear();
-    m_physicsContactGenerators.clear();
-    m_physicsForceRegistry.Clear();
+    m_scene.Initialize(pegasus::scene::AssetManager::GetInstance());
 
     // Forces
     {
@@ -35,139 +28,122 @@ void PegasusAdapter::Init()
 
         m_forces.resize(static_cast<std::size_t>(Force::Count));
 
-        m_forces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, -force, 0});
-        m_forces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::ParticleGravity>(glm::dvec3{0, force, 0});
+        m_forces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, -force, 0 }));
+        m_forces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, force, 0 }));
     }
 }
 
-pegasus::RigidBody* PegasusAdapter::SpawnBody(SpawnInfo const& info)
+pegasus::scene::Handle PegasusAdapter::SpawnBody(SpawnInfo const& info)
 {
-    m_particles.emplace_back();
-    pegasus::Particle& particle = m_particles.back();
+    using pegasus::scene::Primitive;
 
-    particle.SetPosition(info.position);
-    particle.SetVelocity(info.velocity);
-    particle.SetAcceleration(glm::dvec3{0, 0, 0});
+    assert(nullptr != info.pShape);
+
+    Primitive* pPrimitive = nullptr;
+
+    pegasus::mechanics::Body body;
+    body.material.damping = info.damping;
+
+    body.linearMotion.position = info.position;
+    body.linearMotion.velocity = info.velocity;
+
+    Primitive::Type primitiveType = Primitive::Type::DYNAMIC;
 
     if (!std::isnan(info.mass))
     {
-        particle.SetMass(info.mass);
+        body.material.SetMass(info.mass);
     }
     else
     {
-        particle.SetInverseMass(0.0f);
+        body.material.SetInfiniteMass();
+        primitiveType = Primitive::Type::STATIC;
     }
 
-    particle.SetDamping(info.damping);
-
-    m_physicsForceRegistry.Add(particle, *m_forces[static_cast<std::size_t>(info.force)]);
-
-    rigidBodies.emplace_back(
-        particle,
-        std::unique_ptr<pegasus::geometry::SimpleShape>(info.pShape)
-    );
-    ++bodyCount;
-    pegasus::RigidBody& rigidBody = rigidBodies.back();
-
-    rigidBody.s->centerOfMass = info.position;
-
-    if (info.generateContacts)
     {
-        using RigidContactGenerator = pegasus::ShapeContactGenerator<RigidBodies>;
+        using Type = arion::SimpleShape::Type;
 
-        RigidContactGenerator* pContact = new RigidContactGenerator(
-            rigidBody
-            , rigidBodies
-            , 0.98f
-        );
-
-        m_physicsContactGenerators.push_back(
-            std::unique_ptr<RigidContactGenerator>(pContact)
-        );
-
-        m_rigidContactMap[&rigidBody] = pContact;
-    }
-
-    return &rigidBody;
-}
-
-void PegasusAdapter::DeleteBody(pegasus::RigidBody const* pBody)
-{
-    // Cache particle pointer
-    pegasus::Particle* pParticle = &pBody->p;
-
-    // Cleanup rigid body
-    {
-        auto rigidBodyIt = std::find_if(
-            rigidBodies.begin()
-            , rigidBodies.end()
-            , [=](auto const& it) -> bool
-            {
-                return &it == pBody;
-            }
-        );
-
-        if (rigidBodyIt != rigidBodies.end())
+        switch (info.pShape->type)
         {
-            auto rigidContactIt = m_rigidContactMap.find(&*rigidBodyIt);
-
-            if (rigidContactIt != m_rigidContactMap.end())
+            case Type::PLANE:
             {
-                auto physicsCGIt = std::find_if(
-                    m_physicsContactGenerators.begin()
-                    , m_physicsContactGenerators.end()
-                    , [=](auto const& it) -> bool
-                    {
-                        return it.get() == rigidContactIt->second;
-                    }
+                pPrimitive = new pegasus::scene::Plane(primitiveType
+                    , body
+                    , *static_cast<arion::Plane*>(info.pShape)
                 );
 
-                if (physicsCGIt != m_physicsContactGenerators.end())
-                {
-                    m_physicsContactGenerators.erase(physicsCGIt);
-                }
+                break;
             }
+            case Type::BOX:
+            {
+                pPrimitive = new pegasus::scene::Box(primitiveType
+                    , body
+                    , *static_cast<arion::Box*>(info.pShape)
+                );
 
-            rigidBodies.erase(rigidBodyIt);
-            --bodyCount;
+                break;
+            }
+            case Type::SPHERE:
+            {
+                pPrimitive = new pegasus::scene::Sphere(primitiveType
+                    , body
+                    , *static_cast<arion::Sphere*>(info.pShape)
+                );
+
+                break;
+            }
+            default:
+            {
+                return pegasus::scene::Handle();
+                break;
+            }
         }
     }
 
-    // Cleanup particle
-    {
-        auto particleIt = std::find_if(
-            m_particles.begin()
-            , m_particles.end()
-            , [=](auto const& it) -> bool
-            {
-                return &it == pParticle;
-            }
-        );
+    primitives.push_back(pPrimitive);
+    ++primitiveCount;
 
-        if (particleIt != m_particles.end())
+    m_forces[static_cast<std::size_t>(info.force)]->Bind(*pPrimitive);
+
+    return pPrimitive->GetBodyHandle();
+}
+
+void PegasusAdapter::DeleteBody(pegasus::scene::Handle bodyHandle)
+{
+    assert(pegasus::scene::Handle() != bodyHandle);
+
+    auto primitiveIt = std::find_if(
+        primitives.begin()
+        , primitives.end()
+        , [=](auto const& ptr) -> bool
         {
-            m_physicsForceRegistry.Remove(*particleIt);
-
-            m_particles.erase(particleIt);
+            return ptr->GetBodyHandle() == bodyHandle;
         }
+    );
+
+    if (primitiveIt != primitives.end())
+    {
+        pegasus::scene::Primitive* const pPrimitive = *primitiveIt;
+
+        primitives.erase(primitiveIt);
+        --primitiveCount;
+
+        for (auto& forceIt : m_forces)
+        {
+            forceIt->Unbind(*pPrimitive);
+        }
+
+        delete pPrimitive;
     }
 }
 
 void PegasusAdapter::Run(WorldTime::TimeUnit tick)
 {
-    m_physicsWorld.StartFrame();
-
-    m_physicsWorld.RunPhysics(
+    m_scene.ComputeFrame(
         static_cast<float>(tick.count())
         * (static_cast<float>(decltype(tick)::period::num)
             / static_cast<float>(decltype(tick)::period::den)
         )
     );
-
-    for (pegasus::RigidBody const& body : rigidBodies)
-    {
-        body.s->centerOfMass = body.p.GetPosition();
-    }
 }
 
 }

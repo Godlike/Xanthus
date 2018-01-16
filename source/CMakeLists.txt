@@ -8,11 +8,25 @@ cmake_policy(VERSION 3.0)
 project(Xanthus)
 
 find_package(Threads)
+find_package(EponaMath REQUIRED)
+find_package(ArionCollision REQUIRED)
 find_package(UnicornRender REQUIRED)
 find_package(PegasusPhysics REQUIRED)
 
-include_directories(SYSTEM ${Unicorn_INCLUDE_DIRS} ${Pegasus_INCLUDE_DIRS})
-link_directories(${Unicorn_LIBRARY_DIRS} ${Pegasus_LIBRARY_DIRS})
+include_directories(
+    SYSTEM
+    ${Epona_INCLUDE_DIRS}
+    ${Arion_INCLUDE_DIRS}
+    ${Unicorn_INCLUDE_DIRS}
+    ${Pegasus_INCLUDE_DIRS}
+)
+
+link_directories(
+    ${Epona_LIBRARY_DIRS}
+    ${Arion_LIBRARY_DIRS}
+    ${Unicorn_LIBRARY_DIRS}
+    ${Pegasus_LIBRARY_DIRS}
+)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -156,4 +170,12 @@ add_executable(${PROJECT_NAME}
     ${INTENT_SOURCES}
 )
 
-target_link_libraries(${PROJECT_NAME} ${Unicorn_LIB} ${Pegasus_LIB} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(
+    ${PROJECT_NAME}
+
+    ${Epona_LIB}
+    ${Arion_LIB}
+    ${Unicorn_LIB}
+    ${Pegasus_LIB}
+    ${CMAKE_THREAD_LIBS_INIT}
+)

@@ -9,10 +9,9 @@
 
 #include "util/QSBR.hpp"
 
-#include <pegasus/Mechanics.hpp>
-
 #include <atomic>
 #include <mutex>
+#include <set>
 #include <thread>
 #include <unordered_map>
 
@@ -26,7 +25,7 @@ namespace physics
 class PhysicsThread
 {
 public:
-    using BodyPositions = std::unordered_map<pegasus::RigidBody const*, glm::dvec3>;
+    using BodyPositions = std::unordered_map<pegasus::scene::Handle, glm::dvec3>;
     using ThreadIndex = util::QSBR::ThreadIndex;
 
     PhysicsThread(WorldTime& worldTime);
