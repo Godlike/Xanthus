@@ -11,8 +11,6 @@ namespace xanthus
 namespace entity
 {
 
-class Entity;
-
 class World
 {
 public:

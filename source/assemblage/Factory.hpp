@@ -4,11 +4,12 @@
 #include "WorldTime.hpp"
 
 #include "assemblage/ProjectileFactory.hpp"
-#include "assemblage/GridPlateFactory.hpp"
 
 #include "component/GridComponent.hpp"
 
 #include <wink/event_queue.hpp>
+
+#include <glm/glm.hpp>
 
 namespace xanthus
 {
@@ -59,8 +60,9 @@ public:
         wink::event_queue<Projectile> projectiles;
     } orders;
 
-    entity::Entity CreateGridPlate(GridPlateFactory::Order order);
-    entity::Entity CreateDummy();
+    entity::Entity CreateBox(glm::vec3 position, double size);
+    entity::Entity CreateSphere(double radius);
+    void ApplySpherePhysics(entity::Entity sphere, double radius, Orders::ParticleEffect impulse);
 
 private:
     struct CustomSpawners
@@ -68,7 +70,6 @@ private:
         CustomSpawners(WorldTime& worldTime, Factory& factory, Systems& systems);
 
         ProjectileFactory projectile;
-        GridPlateFactory gridplate;
     };
 
     void CreateParticleEffect(Orders::ParticleEffect const& order);

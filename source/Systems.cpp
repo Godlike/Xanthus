@@ -17,14 +17,11 @@ Systems::Systems(unicorn::Settings& settings
     : m_time(worldTime, m_physics)
     , m_lifetime(world, worldTime, factory)
     , m_timer(world, worldTime)
-    , m_intents(worldTime)
-    , m_snapToGrid(world)
-    , m_snapToEntity(world)
     , m_physics(world, worldTime)
     , m_followAnimation(world, worldTime)
     , m_moveAnimation(world, worldTime)
     , m_render(world)
-    , m_input(m_unicornRender, worldTime, m_time, m_intents, m_render, factory)
+    , m_input(m_unicornRender, worldTime, m_time, m_render, factory)
     , m_valid(true)
 {
     if (m_unicornRender.Init())
@@ -69,16 +66,6 @@ void Systems::Update(WorldTime::TimeUnit duration)
     }
 
     {
-        util::ScopeProfiler profiler("intents");
-        m_intents.Process();
-    }
-
-    {
-        util::ScopeProfiler profiler("snap to grid");
-        m_snapToGrid.Update();
-    }
-
-    {
         util::ScopeProfiler profiler("physics sync");
         m_physics.Update();
     }
@@ -91,11 +78,6 @@ void Systems::Update(WorldTime::TimeUnit duration)
     {
         util::ScopeProfiler profiler("move animation");
         m_moveAnimation.Update();
-    }
-
-    {
-        util::ScopeProfiler profiler("snap to entity");
-        m_snapToEntity.Update();
     }
 
     {

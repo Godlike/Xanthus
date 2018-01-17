@@ -4,16 +4,17 @@
 
 #include "assemblage/Factory.hpp"
 
-#include "controller/State.hpp"
 #include "controller/Zone.hpp"
 
 #include "component/PositionComponent.hpp"
 
-#include "system/Intent.hpp"
 #include "system/Time.hpp"
 #include "system/Render.hpp"
 
 #include <unicorn/video/Graphics.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
 
 #include <iostream>
 #include <random>
@@ -26,14 +27,12 @@ namespace system
 Input::Input(unicorn::UnicornRender& render
     , WorldTime& worldTime
     , Time& timeSystem
-    , Intent& intents
     , Render& renderSystem
     , assemblage::Factory& factory
 )
     : m_unicornRender(render)
     , m_worldTime(worldTime)
     , m_timeSystem(timeSystem)
-    , m_intents(intents)
     , m_renderSystem(renderSystem)
     , m_factory(factory)
 {
@@ -154,6 +153,21 @@ void Input::Update()
         m_renderSystem.pCameraController->TranslateWorld(cameraTranslation);
         m_renderSystem.pCameraController->Update();
 
+        controller::Zone& zone = controller::Zone::Instance();
+
+        {
+            entity::Entity player = zone.GetPlayer();
+
+            if (!player.HasComponent<component::PhysicsComponent>())
+            {
+                component::PositionComponent& comp = player.GetComponent<component::PositionComponent>();
+
+                comp.position = m_renderSystem.pCameraController->GetTranslation()
+                    + m_renderSystem.pCameraController->GetDirection() * 2.0f
+                ;
+            }
+        }
+
         for (Key const& key : newKeys)
         {
             switch (key)
@@ -171,105 +185,42 @@ void Input::Update()
 
                 case Key::Space:
                 {
-                    using Projectile = Factory::Orders::Projectile;
+                    entity::Entity player = zone.GetPlayer();
 
-                    controller::State& gameState = controller::State::Instance();
-
-                    entity::Entity player = controller::Zone::Instance().GetPlayer().GetEntity();
-                    entity::Entity target = gameState.GetSelected();
-
-                    if (!target.IsValid())
+                    if (!player.HasComponent<component::PhysicsComponent>())
                     {
-                        gameState.SelectNext();
-                        target = gameState.GetSelected();
+                        component::PositionComponent& comp = player.GetComponent<component::PositionComponent>();
+
+                        glm::vec3 direction = m_renderSystem.pCameraController->GetDirection();
+
+                        if (0 != glm::length2(cameraTranslation))
+                        {
+                            direction += glm::normalize(cameraTranslation) / 2.0f;
+                        }
+
+                        m_factory.ApplySpherePhysics(player
+                            , zone.GetPlayerRadius()
+                            , Factory::Orders::ParticleEffect{
+                                comp.position
+                                , glm::normalize(direction) * 20.0f
+                                , {}
+                                , {}
+                                , Factory::Orders::ParticleEffect::Type::Down
+                            }
+                        );
                     }
-
-                    if (player == target)
-                    {
-                        gameState.SelectNext();
-                        target = gameState.GetSelected();
-                    }
-
-                    if (player != target)
-                    {
-                        Projectile projectile;
-
-                        projectile.position = player.GetComponent<component::PositionComponent>().position;
-                        projectile.target = target;
-                        projectile.onComplete.connect(&gameState, &controller::State::ResolveProjectile);
-
-                        m_factory.orders.projectiles.push(projectile);
-                    }
-                    else
-                    {
-                        controller::Zone& zone = controller::Zone::Instance();
-                        zone.Reset(zone.GetSeed() + 1, m_factory);
-                    }
-
-                    break;
-                }
-                case Key::Tab:
-                {
-                    controller::State::Instance().SelectNext();
                     break;
                 }
                 case Key::LeftBracket:
                 {
-                    controller::Zone& zone = controller::Zone::Instance();
                     zone.Reset(zone.GetSeed() - 1, m_factory);
 
                     break;
                 }
                 case Key::RightBracket:
                 {
-                    controller::Zone& zone = controller::Zone::Instance();
                     zone.Reset(zone.GetSeed() + 1, m_factory);
 
-                    break;
-                }
-
-                case Key::Num_2:
-                {
-                    controller::Player& player = controller::Zone::Instance().GetPlayer();
-
-                    m_intents.Register({
-                        0
-                        , player.GetEntity()
-                        , player.Move(0, -1)
-                    });
-                    break;
-                }
-                case Key::Num_4:
-                {
-                    controller::Player& player = controller::Zone::Instance().GetPlayer();
-
-                    m_intents.Register({
-                        0
-                        , player.GetEntity()
-                        , player.Move(1, 0)
-                    });
-                    break;
-                }
-                case Key::Num_6:
-                {
-                    controller::Player& player = controller::Zone::Instance().GetPlayer();
-
-                    m_intents.Register({
-                        0
-                        , player.GetEntity()
-                        , player.Move(-1, 0)
-                    });
-                    break;
-                }
-                case Key::Num_8:
-                {
-                    controller::Player& player = controller::Zone::Instance().GetPlayer();
-
-                    m_intents.Register({
-                        0
-                        , player.GetEntity()
-                        , player.Move(0, 1)
-                    });
                     break;
                 }
 

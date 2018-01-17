@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
-project(Xanthus)
+project(Sandbox)
 
 find_package(Threads)
 find_package(EponaMath REQUIRED)
@@ -33,9 +33,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(ASSEMBLAGE_SOURCES
     assemblage/Factory.cpp
     assemblage/Factory.hpp
-
-    assemblage/GridPlateFactory.cpp
-    assemblage/GridPlateFactory.hpp
 
     assemblage/ProjectileFactory.cpp
     assemblage/ProjectileFactory.hpp
@@ -82,9 +79,6 @@ set(SYSTEM_SOURCES
     system/Input.cpp
     system/Input.hpp
 
-    system/Intent.cpp
-    system/Intent.hpp
-
     system/Lifetime.cpp
     system/Lifetime.hpp
 
@@ -99,12 +93,6 @@ set(SYSTEM_SOURCES
 
     system/Render.cpp
     system/Render.hpp
-
-    system/SnapToEntity.cpp
-    system/SnapToEntity.hpp
-
-    system/SnapToGrid.cpp
-    system/SnapToGrid.hpp
 
     system/Time.cpp
     system/Time.hpp
@@ -125,27 +113,9 @@ set(UTIL_SOURCES
 )
 
 set(CONTROLLER_SOURCES
-    controller/Grid.cpp
-    controller/Grid.hpp
-
-    controller/Player.cpp
-    controller/Player.hpp
-
-    controller/State.cpp
-    controller/State.hpp
-
     controller/Zone.cpp
     controller/Zone.hpp
 )
-
-set(INTENT_SOURCES
-    intent/Intent.cpp
-    intent/Intent.hpp
-
-    intent/GridMove.cpp
-    intent/GridMove.hpp
-)
-
 
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -167,7 +137,6 @@ add_executable(${PROJECT_NAME}
     ${UTIL_SOURCES}
 
     ${CONTROLLER_SOURCES}
-    ${INTENT_SOURCES}
 )
 
 target_link_libraries(

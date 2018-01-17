@@ -2,8 +2,8 @@
 
 #include "util/Config.hpp"
 
-#include "component/EntitySnapComponent.hpp"
 #include "component/LifetimeComponent.hpp"
+#include "component/PositionComponent.hpp"
 
 #include <random>
 
@@ -14,75 +14,58 @@ namespace controller
 
 void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
 {
-    m_seed = seed;
-
-    Grid* pGrid = new Grid();
-
-    m_grid.reset(pGrid);
-    m_player.reset(new Player(factory.CreateDummy(), *pGrid));
-
-    if (m_gridPlate.IsValid())
+    for (auto & entity : m_wall)
     {
-        m_gridPlate.AddComponent<component::LifetimeComponent>();
-    }
-
-    m_gridPlate = factory.CreateGridPlate(assemblage::GridPlateFactory::Order{
-        glm::vec3{0.0f, 0.0f, -1.0f}
-    });
-
-    std::mt19937_64 engine(seed);
-
-    std::uniform_real_distribution<> plateChance(0.3, 1);
-    std::bernoulli_distribution plateGenerator(plateChance(engine));
-    std::uniform_int_distribution<> altSwingGenerator(0, 10);
-
-    std::uniform_real_distribution<> altChance(0, 1);
-    int16_t const altSwing = altSwingGenerator(engine);
-
-    std::binomial_distribution<> altGenerator(altSwing * 2, altChance(engine));
-
-    std::bernoulli_distribution dummyGenerator(1e-1);
-
-    bool playerSet = false;
-
-    for (uint32_t x = 0; x < 8; ++x)
-    {
-        for (uint32_t y = 0; y < 8; ++y)
+        if (entity.IsValid())
         {
-            if (plateGenerator(engine))
-            {
-                Grid::Coordinates coords(x, y, altGenerator(engine) - altSwing);
-                m_grid->CreateTile(coords);
-
-                if (playerSet)
-                {
-                    if (dummyGenerator(engine))
-                    {
-                        m_grid->Add(coords, factory.CreateDummy());
-                    }
-                }
-                else
-                {
-                    playerSet = true;
-                    m_grid->Add(coords, m_player->GetEntity());
-
-                    component::EntitySnapComponent& snapComp = m_gridPlate.AddComponent<component::EntitySnapComponent>();
-
-                    snapComp.entity = m_player->GetEntity();
-                    snapComp.offset = glm::vec3(0);
-                }
-            }
+            entity.AddComponent<component::LifetimeComponent>();
         }
     }
 
-    m_grid->BuildConnections();
+    m_wall.clear();
+
+    if (nullptr != m_player.get() && m_player->IsValid())
+    {
+        m_player->AddComponent<component::LifetimeComponent>();
+    }
+
+    m_seed = seed;
+
+    {
+        std::pair<float, float> const boxUnit {1.0f, 1.0f};
+        std::pair<uint32_t, uint32_t> const wallSize {64, 32};
+
+        glm::vec3 const wallPosition {
+            -static_cast<float>(wallSize.first / 2) * boxUnit.first
+            , -static_cast<float>(wallSize.second / 2) * boxUnit.second
+            , -20.0f
+        };
+
+        static uint32_t const wallBorder = 4;
+
+        std::mt19937_64 engine(seed);
+
+        std::uniform_real_distribution<> radiusDistribution(0.3, 0.7);
+        std::uniform_int_distribution<uint32_t> coordsXDistribution(wallBorder, wallSize.first - wallBorder);
+        std::uniform_int_distribution<uint32_t> coordsYDistribution(wallBorder, wallSize.second - wallBorder);
+
+        m_playerRadius = radiusDistribution(engine);
+        m_player.reset(new entity::Entity(factory.CreateSphere(m_playerRadius)));
+
+        std::pair<uint32_t, uint32_t> hole(coordsXDistribution(engine), coordsYDistribution(engine));
+        float const holeRadius = std::uniform_real_distribution<>(m_playerRadius + 0.5, 3 * (m_playerRadius + 0.5))(engine);
+
+        glm::vec3 holeCenter { boxUnit.first * hole.first, boxUnit.second * hole.second, 0.0f };
+        holeCenter -= wallPosition;
+
+        m_wall.push_back(factory.CreateBox(wallPosition, holeRadius * 10));
+    }
 }
 
 Zone::Zone()
     : m_seed(0)
-    , m_grid(new Grid())
-    , m_player(new Player(entity::Entity(), *m_grid.get()))
-    , m_gridPlate()
+    , m_playerRadius(0.0)
+    , m_player(nullptr)
 {
 
 }

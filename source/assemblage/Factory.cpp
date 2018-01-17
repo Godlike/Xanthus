@@ -66,46 +66,86 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
     }
 }
 
-entity::Entity Factory::CreateGridPlate(GridPlateFactory::Order order)
-{
-    entity::Entity entity = m_world.CreateEntity();
-
-    m_spawners.gridplate.Create(entity, order);
-
-    return entity;
-}
-
 Factory::CustomSpawners::CustomSpawners(
     WorldTime& worldTime
     , Factory& factory
     , Systems& systems
 )
     : projectile(worldTime, factory, systems.m_render)
-    , gridplate(systems.m_render)
 {
 
 }
 
-entity::Entity Factory::CreateDummy()
+entity::Entity Factory::CreateBox(glm::vec3 position, double size)
 {
-    entity::Entity entity = m_world.CreateEntity();
+    size /= 2;
 
-    // Dummy
-    {
-        entity.AddComponent<component::DummyComponent>();
-    }
+    entity::Entity entity = m_world.CreateEntity();
 
     // Position
     {
-        entity.AddComponent<component::PositionComponent>();
+        component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
+        comp.position = position;
+    }
+
+    // Physics
+    {
+        component::PhysicsComponent& comp = entity.AddComponent<component::PhysicsComponent>();
+        comp.pHandle = m_systems.m_physics.SpawnBody({
+            new arion::Box(position
+                , glm::dvec3{1, 0, 0} * size
+                , glm::dvec3{0, 1, 0} * size
+                , glm::dvec3{0, 0, 1}
+            )
+            , position
+            , glm::dvec3(0.0)
+            , std::numeric_limits<double>::quiet_NaN()
+            , 0.0f
+            , Force::Down
+        });
     }
 
     // Render
     {
         using unicorn::video::Primitives;
 
-        glm::vec3 const scale = {2.5f, 5.0f, 2.5f};
-        glm::vec3 const offset = {0.0f, (scale[1] / 2), 0.0f};
+        std::random_device rd;
+        std::mt19937 randEngine(rd());
+
+        std::uniform_real_distribution<> colorDistribution(0.45, 0.55);
+
+        system::Render::Material* pMaterial = new system::Render::Material();
+        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        Primitives::Box(*pMesh);
+        pMesh->Scale(glm::vec3(size, size, 1.0f));
+
+        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        renderComp.pMesh = pMesh;
+        renderComp.pMaterial = pMaterial;
+    }
+
+    return entity;
+}
+
+entity::Entity Factory::CreateSphere(double radius)
+{
+    entity::Entity entity = m_world.CreateEntity();
+
+    // Position
+    {
+        component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
+        comp.position = glm::vec3{
+            std::numeric_limits<float>::quiet_NaN()
+            , std::numeric_limits<float>::quiet_NaN()
+            , std::numeric_limits<float>::quiet_NaN()
+        };
+    }
+
+    // Render
+    {
+        using unicorn::video::Primitives;
 
         std::random_device rd;
         std::mt19937 randEngine(rd());
@@ -116,16 +156,7 @@ entity::Entity Factory::CreateDummy()
         pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
 
         system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
-        Primitives::Quad(*pMesh);
-
-        std::vector<unicorn::video::Vertex> vertices = pMesh->GetVertices();
-        for (auto& v : vertices)
-        {
-            v.pos *= scale;
-            v.pos += offset;
-        }
-
-        pMesh->SetMeshData(vertices, pMesh->GetIndices());
+        Primitives::Sphere(*pMesh, radius, 32, 32);
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
@@ -133,6 +164,38 @@ entity::Entity Factory::CreateDummy()
     }
 
     return entity;
+}
+
+void Factory::ApplySpherePhysics(entity::Entity sphere, double radius, Orders::ParticleEffect impulse)
+{
+    component::PhysicsComponent& comp = sphere.AddComponent<component::PhysicsComponent>();
+
+    Force force = Force::Down;
+
+    switch (impulse.type)
+    {
+        case Orders::ParticleEffect::Type::Up:
+        {
+            force = Force::Up;
+        }
+        case Orders::ParticleEffect::Type::Down:
+        default:
+        {
+            force = Force::Down;
+            break;
+        }
+    }
+
+    comp.pHandle = m_systems.m_physics.SpawnBody({
+        new arion::Sphere(glm::dvec3{0, 0, 0}
+            , radius
+        )
+        , impulse.position
+        , impulse.velocity
+        , (radius * radius * radius) * 4.18879020479
+        , 0.9f
+        , force
+    });
 }
 
 void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)

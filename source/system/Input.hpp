@@ -22,7 +22,6 @@ class Factory;
 namespace system
 {
 
-class Intent;
 class Render;
 class Time;
 
@@ -32,7 +31,6 @@ public:
     Input(unicorn::UnicornRender& render
         , WorldTime& worldTime
         , Time& timeSystem
-        , Intent& intents
         , Render& renderSystem
         , assemblage::Factory& factory
     );
@@ -63,7 +61,6 @@ private:
 
     WorldTime& m_worldTime;
     Time& m_timeSystem;
-    Intent& m_intents;
     Render& m_renderSystem;
     assemblage::Factory& m_factory;
 

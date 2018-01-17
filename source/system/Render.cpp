@@ -57,12 +57,14 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
 
     m_pVkRenderer = pGraphics->SpawnRenderer(pWindow, m_camera);
 
-    m_pVkRenderer->SetBackgroundColor(unicorn::video::Color::LightPink());
+    m_pVkRenderer->SetBackgroundColor(unicorn::video::Color::Black());
 
     m_pVkRenderer->Destroyed.connect(this, &Render::OnRendererDestroyed);
 
     pCameraProjection = new unicorn::video::PerspectiveCamera(*pWindow, m_camera.projection);
     pCameraController = new unicorn::video::CameraFpsController(m_camera.view);
+
+    pCameraController->LookAtDirection(glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
 }
 
 void Render::Update()

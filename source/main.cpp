@@ -15,8 +15,8 @@ int main(int argc, char* argv[])
 {
     unicorn::Settings& settings = unicorn::Settings::Instance();
 
-    settings.Init(argc, argv, "balius_and_xanthus.log");
-    settings.SetApplicationName("Balius and Xanthus");
+    settings.Init(argc, argv, "sandbox.log");
+    settings.SetApplicationName("Sandbox");
 
     xanthus::Application app(settings);
 
