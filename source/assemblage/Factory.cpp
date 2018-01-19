@@ -78,8 +78,6 @@ Factory::CustomSpawners::CustomSpawners(
 
 entity::Entity Factory::CreateBox(glm::vec3 position, double size)
 {
-    size /= 2;
-
     entity::Entity entity = m_world.CreateEntity();
 
     // Position
@@ -93,8 +91,8 @@ entity::Entity Factory::CreateBox(glm::vec3 position, double size)
         component::PhysicsComponent& comp = entity.AddComponent<component::PhysicsComponent>();
         comp.pHandle = m_systems.m_physics.SpawnBody({
             new arion::Box(position
-                , glm::dvec3{1, 0, 0} * size
-                , glm::dvec3{0, 1, 0} * size
+                , glm::dvec3{1, 0, 0} * (size / 2)
+                , glm::dvec3{0, 1, 0} * (size / 2)
                 , glm::dvec3{0, 0, 1}
             )
             , position

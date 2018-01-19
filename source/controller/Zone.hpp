@@ -16,6 +16,7 @@ public:
     uint64_t GetSeed() const { return m_seed; }
     void Reset(uint64_t seed, assemblage::Factory& factory);
 
+    void ResetPlayer(assemblage::Factory& factory);
     entity::Entity GetPlayer() const { return *m_player.get(); }
     double GetPlayerRadius() const { return m_playerRadius; }
 

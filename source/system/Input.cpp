@@ -183,6 +183,11 @@ void Input::Update()
                     break;
                 }
 
+                case Key::F:
+                {
+                    zone.ResetPlayer(m_factory);
+                    break;
+                }
                 case Key::Space:
                 {
                     entity::Entity player = zone.GetPlayer();
