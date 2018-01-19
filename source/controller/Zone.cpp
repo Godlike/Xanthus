@@ -32,22 +32,23 @@ void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
     m_seed = seed;
 
     {
-        static constexpr float const boxUnit = 1.0f;
-        static constexpr std::pair<int32_t, int32_t> const wallSize {20, 10};
-
-        static constexpr int32_t const wallBorder = 4;
+        static constexpr float const boxUnit = 0.8f;
+        static constexpr std::pair<int32_t, int32_t> const wallSize {32, 18};
 
         std::mt19937_64 engine(seed);
 
         std::uniform_real_distribution<> radiusDistribution(0.2, 0.4);
-        std::uniform_int_distribution<int32_t> coordsXDistribution(wallBorder, wallSize.first - wallBorder);
-        std::uniform_int_distribution<int32_t> coordsYDistribution(wallBorder, wallSize.second - wallBorder);
 
         m_playerRadius = radiusDistribution(engine);
         m_player.reset(new entity::Entity(factory.CreateSphere(m_playerRadius)));
 
+        float const holeRadius = std::uniform_real_distribution<>((3 * m_playerRadius), (8 * m_playerRadius))(engine);
+
+        int32_t const wallBorder = static_cast<int32_t>(holeRadius / boxUnit) + 2;
+
+        std::uniform_int_distribution<int32_t> coordsXDistribution(wallBorder, wallSize.first - wallBorder);
+        std::uniform_int_distribution<int32_t> coordsYDistribution(wallBorder, wallSize.second - wallBorder);
         std::pair<int32_t, int32_t> hole(coordsXDistribution(engine), coordsYDistribution(engine));
-        float const holeRadius = std::uniform_real_distribution<>((2 * m_playerRadius + 0.5), (6 * m_playerRadius + 0.5))(engine);
 
         glm::vec3 holeCenter { boxUnit * hole.first, boxUnit * hole.second, 0.0f };
 
@@ -85,7 +86,7 @@ void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
             {
                 for (int32_t y = 0; y < wallSize.second; ++y)
                 {
-                    glm::vec3 holeVec(hole.first - x, hole.second - y, 0.0f);
+                    glm::vec3 holeVec((hole.first - x) * boxUnit, (hole.second - y) * boxUnit, 0.0f);
 
                     if (glm::length(holeVec) > holeRadius)
                     {
