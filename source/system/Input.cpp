@@ -89,11 +89,16 @@ void Input::Update()
 
         assert(nullptr != m_renderSystem.pCameraController);
 
-        glm::vec3 cameraTranslation{0, 0, 0};
+        controller::Zone& zone = controller::Zone::Instance();
+        entity::Entity player = zone.GetPlayer();
+
+        glm::vec3 playerPosition = player.GetComponent<component::PositionComponent>().position;
+
+        glm::vec3 playerForce{0, 0, 0};
+        glm::vec3 cameraTranslation = m_renderSystem.pCameraController->GetTranslation();
 
         glm::vec3 const cameraDirection = m_renderSystem.pCameraController->GetDirection();
         glm::vec3 const cameraRight = m_renderSystem.pCameraController->GetRight();
-        glm::vec3 const cameraUp = m_renderSystem.pCameraController->GetUp();
 
         for (Key const& key : pressedKeys)
         {
@@ -114,32 +119,33 @@ void Input::Update()
 
                 case Key::W:
                 {
-                    cameraTranslation += cameraDirection * cameraMovementSpeed;
+                    playerForce += cameraDirection * cameraMovementSpeed;
                     break;
                 }
                 case Key::S:
                 {
-                    cameraTranslation -= cameraDirection * cameraMovementSpeed;
+                    playerForce -= cameraDirection * cameraMovementSpeed;
                     break;
                 }
                 case Key::A:
                 {
-                    cameraTranslation += cameraRight * cameraMovementSpeed;
+                    playerForce += cameraRight * cameraMovementSpeed;
                     break;
                 }
                 case Key::D:
                 {
-                    cameraTranslation -= cameraRight * cameraMovementSpeed;
+                    playerForce -= cameraRight * cameraMovementSpeed;
                     break;
                 }
+
                 case Key::Q:
                 {
-                    cameraTranslation -= cameraUp * cameraMovementSpeed;
+                    cameraTranslation += glm::vec3{0, 1, 0} * cameraMovementSpeed;
                     break;
                 }
                 case Key::E:
                 {
-                    cameraTranslation += cameraUp * cameraMovementSpeed;
+                    cameraTranslation += glm::vec3{0, -1, 0} * cameraMovementSpeed;
                     break;
                 }
 
@@ -150,23 +156,17 @@ void Input::Update()
             }
         }
 
-        m_renderSystem.pCameraController->TranslateWorld(cameraTranslation);
-        m_renderSystem.pCameraController->Update();
-
-        controller::Zone& zone = controller::Zone::Instance();
-
+        if (0 != glm::length2(playerForce))
         {
-            entity::Entity player = zone.GetPlayer();
-
-            if (!player.HasComponent<component::PhysicsComponent>())
-            {
-                component::PositionComponent& comp = player.GetComponent<component::PositionComponent>();
-
-                comp.position = m_renderSystem.pCameraController->GetTranslation()
-                    + m_renderSystem.pCameraController->GetDirection() * 2.0f
-                ;
-            }
+            component::ControlComponent& comp = player.AddComponent<component::ControlComponent>();
+            comp.force = glm::vec3{1, 0, 1} * playerForce;
         }
+
+        float cameraY = std::min(4.0f, std::max(1.5f, cameraTranslation[1]));
+        m_renderSystem.pCameraController->SetTranslation(
+            playerPosition * glm::vec3{1, 0, 1} + glm::vec3{0, 1, 0} * cameraY
+        );
+        m_renderSystem.pCameraController->Update();
 
         for (Key const& key : newKeys)
         {
@@ -190,30 +190,30 @@ void Input::Update()
                 }
                 case Key::Space:
                 {
-                    entity::Entity player = zone.GetPlayer();
+                    component::PositionComponent& comp = player.GetComponent<component::PositionComponent>();
 
-                    if (!player.HasComponent<component::PhysicsComponent>())
-                    {
-                        component::PositionComponent& comp = player.GetComponent<component::PositionComponent>();
+                    glm::vec3 direction = m_renderSystem.pCameraController->GetDirection();
 
-                        glm::vec3 direction = m_renderSystem.pCameraController->GetDirection();
+                    direction += glm::vec3{1, 0, 1} * playerForce;
 
-                        if (0 != glm::length2(cameraTranslation))
-                        {
-                            direction += glm::normalize(cameraTranslation) / 2.0f;
+                    entity::Entity sphere = m_factory.CreateSphere(arion::Sphere(
+                        comp.position + glm::vec3(0, 1, 0) * cameraY
+                        , zone.GetSphereRadius()
+                    ));
+
+                    m_factory.ApplySpherePhysics(sphere
+                        , zone.GetSphereRadius()
+                        , Factory::Orders::ParticleEffect{
+                            comp.position + glm::vec3(0, 1, 0) * cameraY
+                            , glm::normalize(direction) * 25.0f
+                            , {}
+                            , {}
+                            , Factory::Orders::ParticleEffect::Type::Down
                         }
+                    );
 
-                        m_factory.ApplySpherePhysics(player
-                            , zone.GetPlayerRadius()
-                            , Factory::Orders::ParticleEffect{
-                                comp.position
-                                , glm::normalize(direction) * 20.0f
-                                , {}
-                                , {}
-                                , Factory::Orders::ParticleEffect::Type::Down
-                            }
-                        );
-                    }
+                    zone.RegisterSphere(sphere);
+
                     break;
                 }
                 case Key::LeftBracket:

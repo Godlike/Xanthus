@@ -38,6 +38,7 @@ public:
     BodyPositions* GetBodyPositions() const;
 
     BodyHandle* SpawnBody(SpawnInfo const& info);
+    void PushBody(BodyHandle const* pHandle, glm::vec3 force);
     void DeleteBody(BodyHandle const* pHandle);
 
     WorldTime::TimeUnit GetCurrentTime() const;
@@ -71,6 +72,19 @@ private:
         std::list<Order> orders;
     };
 
+    struct Pusher
+    {
+        struct Order
+        {
+            BodyHandle const* pHandle;
+
+            glm::vec3 force;
+        };
+
+        std::mutex mutex;
+        std::list<Order> orders;
+    };
+
     struct Deleter
     {
         struct Order
@@ -89,6 +103,7 @@ private:
     void PollPositions();
     void CheckDeleter();
     void CheckSpawner();
+    void CheckPusher();
 
     ThreadIndex m_threadId;
     std::thread m_thread;
@@ -101,6 +116,7 @@ private:
     PegasusAdapter m_physicsEngine;
 
     Spawner m_spawner;
+    Pusher m_pusher;
     Deleter m_deleter;
 
     std::set<BodyHandle const*> m_deletedHandles;

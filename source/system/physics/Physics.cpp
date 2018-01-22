@@ -7,10 +7,13 @@ namespace system
 namespace physics
 {
 
+// Physics::
+
 Physics::Physics(entity::World& world, WorldTime& worldTime)
     : Skeleton<component::PositionComponent, component::PhysicsComponent>(world)
     , m_physicsThread(worldTime)
     , m_threadId(m_physicsThread.memoryReclaimer.RegisterThread())
+    , m_control(world, m_physicsThread)
 {
 
 }
@@ -28,6 +31,8 @@ void Physics::Init()
 
 void Physics::Update()
 {
+    m_control.Update();
+
     entity::World::Entities entities = GetEntities();
     PhysicsThread::BodyPositions const& positions = *m_physicsThread.GetBodyPositions();
 
@@ -55,6 +60,30 @@ BodyHandle* Physics::SpawnBody(SpawnInfo const& info)
 void Physics::DeleteBody(BodyHandle const* pHandle)
 {
     m_physicsThread.DeleteBody(pHandle);
+}
+
+// Physics::Control::
+
+Physics::Control::Control(entity::World& world, PhysicsThread& physicsThread)
+    : Skeleton<component::PhysicsComponent, component::ControlComponent>(world)
+    , m_physicsThread(physicsThread)
+{
+
+}
+
+void Physics::Control::Update()
+{
+    entity::World::Entities entities = GetEntities();
+
+    for (entity::Entity& entity : entities)
+    {
+        component::PhysicsComponent const& physComp = entity.GetComponent<component::PhysicsComponent>();
+        component::ControlComponent const& controlComp = entity.GetComponent<component::ControlComponent>();
+
+        m_physicsThread.PushBody(physComp.pHandle, controlComp.force);
+
+        entity.DeleteComponent<component::ControlComponent>();
+    }
 }
 
 }

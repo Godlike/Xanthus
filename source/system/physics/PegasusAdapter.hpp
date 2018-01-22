@@ -30,6 +30,7 @@ public:
     void Init();
 
     pegasus::scene::Handle SpawnBody(SpawnInfo const& info);
+    void PushBody(pegasus::scene::Handle bodyHandle, glm::vec3 force);
     void DeleteBody(pegasus::scene::Handle bodyHandle);
 
     void Run(WorldTime::TimeUnit tick);

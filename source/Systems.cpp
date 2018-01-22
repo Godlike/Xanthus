@@ -22,6 +22,7 @@ Systems::Systems(unicorn::Settings& settings
     , m_moveAnimation(world, worldTime)
     , m_render(world)
     , m_input(m_unicornRender, worldTime, m_time, m_render, factory)
+    , m_gameplay()
     , m_valid(true)
 {
     if (m_unicornRender.Init())
@@ -83,6 +84,11 @@ void Systems::Update(WorldTime::TimeUnit duration)
     {
         util::ScopeProfiler profiler("render updates");
         m_render.Update();
+    }
+
+    {
+        util::ScopeProfiler profiler("gameplay");
+        m_gameplay.Update();
     }
 
 }

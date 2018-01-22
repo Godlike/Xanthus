@@ -71,6 +71,16 @@ BodyHandle* PhysicsThread::SpawnBody(SpawnInfo const& info)
     return pHandle;
 }
 
+void PhysicsThread::PushBody(BodyHandle const* pHandle, glm::vec3 force)
+{
+    std::lock_guard<std::mutex> lock(m_pusher.mutex);
+
+    m_pusher.orders.push_back({
+        pHandle
+        , force
+    });
+}
+
 void PhysicsThread::DeleteBody(BodyHandle const* pHandle)
 {
     std::lock_guard<std::mutex> lock(m_deleter.mutex);
@@ -122,6 +132,7 @@ void PhysicsThread::Routine()
 
             CheckDeleter();
             CheckSpawner();
+            CheckPusher();
             m_deletedHandles.clear();
         }
 
@@ -166,9 +177,7 @@ void PhysicsThread::CheckDeleter()
 
         if (order.deleteTime <= m_timeControl.currentTime)
         {
-            pegasus::scene::Handle bodyHandle = order.pHandle->bodyHandle.load();
-
-            m_physicsEngine.DeleteBody(bodyHandle);
+            m_physicsEngine.DeleteBody(order.pHandle->bodyHandle.load());
 
             m_deletedHandles.insert(order.pHandle);
             delete order.pHandle;
@@ -223,6 +232,38 @@ void PhysicsThread::CheckSpawner()
 
         delete it->info.pShape;
         it = m_spawner.orders.erase(it);
+    }
+}
+
+void PhysicsThread::CheckPusher()
+{
+    std::lock_guard<std::mutex> lock(m_pusher.mutex);
+
+    std::list<Pusher::Order>::const_iterator it = m_pusher.orders.begin();
+
+    // Remove deleted handles
+    while (it != m_pusher.orders.end())
+    {
+        if (0 != m_deletedHandles.count(it->pHandle))
+        {
+            it = m_pusher.orders.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    it = m_pusher.orders.begin();
+
+    // Execute spawner orders
+    while (it != m_pusher.orders.end())
+    {
+        Pusher::Order const& order = *it;
+
+        m_physicsEngine.PushBody(order.pHandle->bodyHandle.load(), order.force);
+
+        it = m_pusher.orders.erase(it);
     }
 }
 

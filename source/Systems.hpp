@@ -5,6 +5,7 @@
 
 #include "system/animation/Follow.hpp"
 #include "system/animation/Move.hpp"
+#include "system/Gameplay.hpp"
 #include "system/Input.hpp"
 #include "system/Lifetime.hpp"
 #include "system/physics/Physics.hpp"
@@ -52,6 +53,7 @@ private:
     system::animation::Move m_moveAnimation;
     system::Render m_render;
     system::Input m_input;
+    system::Gameplay m_gameplay;
 
     bool m_valid;
 };

@@ -54,6 +54,7 @@ set(COMPONENT_SOURCES
     component/Flags.hpp
     component/Flags.imp
 
+    component/ControlComponent.hpp
     component/DummyComponent.hpp
     component/EntitySnapComponent.hpp
     component/LifetimeComponent.hpp
@@ -75,6 +76,9 @@ set(SYSTEM_SOURCES
     system/animation/Move.hpp
     system/animation/Follow.cpp
     system/animation/Follow.hpp
+
+    system/Gameplay.cpp
+    system/Gameplay.hpp
 
     system/Input.cpp
     system/Input.hpp

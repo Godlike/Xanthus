@@ -57,6 +57,8 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
 
     m_pVkRenderer = pGraphics->SpawnRenderer(pWindow, m_camera);
 
+    assert(nullptr != m_pVkRenderer);
+
     m_pVkRenderer->SetBackgroundColor(unicorn::video::Color::Black());
 
     m_pVkRenderer->Destroyed.connect(this, &Render::OnRendererDestroyed);

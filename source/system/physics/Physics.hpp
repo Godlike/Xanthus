@@ -6,6 +6,8 @@
 #include "entity/World.hpp"
 
 #include "component/Flags.hpp"
+
+#include "component/ControlComponent.hpp"
 #include "component/PositionComponent.hpp"
 #include "component/PhysicsComponent.hpp"
 
@@ -43,8 +45,24 @@ public:
     WorldTime::TimeUnit GetCurrentTime() const { return m_physicsThread.GetCurrentTime(); }
 
 private:
+    class Control : public Skeleton<component::PhysicsComponent, component::ControlComponent>
+    {
+    public:
+        Control(entity::World& world
+            , PhysicsThread& physicsThread
+        );
+        ~Control() = default;
+
+        void Update();
+
+    private:
+        PhysicsThread& m_physicsThread;
+    };
+
     PhysicsThread m_physicsThread;
     PhysicsThread::ThreadIndex m_threadId;
+
+    Control m_control;
 };
 
 }

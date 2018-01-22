@@ -19,12 +19,9 @@
 
 #include <unicorn/video/Primitives.hpp>
 
-#include <Arion/Shape.hpp>
-
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <cmath>
-#include <random>
 
 namespace xanthus
 {
@@ -76,29 +73,25 @@ Factory::CustomSpawners::CustomSpawners(
 
 }
 
-entity::Entity Factory::CreateBox(glm::vec3 position, double size)
+entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distribution<> colorDistribution, double mass, bool physics)
 {
     entity::Entity entity = m_world.CreateEntity();
 
     // Position
     {
         component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
-        comp.position = position;
+        comp.position = box.centerOfMass;
     }
 
     // Physics
+    if (physics)
     {
         component::PhysicsComponent& comp = entity.AddComponent<component::PhysicsComponent>();
         comp.pHandle = m_systems.m_physics.SpawnBody({
-            new arion::Box(position
-                , glm::dvec3{1, 0, 0} * (size / 2)
-                , glm::dvec3{0, 1, 0} * (size / 2)
-                , glm::dvec3{0, 0, 1}
-            )
-            , position
+            new arion::Box(box)
             , glm::dvec3(0.0)
-            , std::numeric_limits<double>::quiet_NaN()
-            , 0.0f
+            , mass
+            , 0.2f
             , Force::Down
         });
     }
@@ -110,14 +103,17 @@ entity::Entity Factory::CreateBox(glm::vec3 position, double size)
         std::random_device rd;
         std::mt19937 randEngine(rd());
 
-        std::uniform_real_distribution<> colorDistribution(0.45, 0.55);
-
         system::Render::Material* pMaterial = new system::Render::Material();
         pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
 
         system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
         Primitives::Box(*pMesh);
-        pMesh->Scale(glm::vec3(size, size, 1.0f));
+
+        pMesh->Scale(glm::vec3(
+            glm::length(box.iAxis) * 2.0f
+            , glm::length(box.jAxis) * 2.0f
+            , glm::length(box.kAxis) * 2.0f
+        )); // scale to desired size
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
@@ -127,18 +123,22 @@ entity::Entity Factory::CreateBox(glm::vec3 position, double size)
     return entity;
 }
 
-entity::Entity Factory::CreateSphere(double radius)
+entity::Entity Factory::CreateSphere(arion::Sphere const& sphere)
 {
+    WorldTime::TimeUnit now = m_worldTime.GetTime();
+
     entity::Entity entity = m_world.CreateEntity();
 
     // Position
     {
         component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
-        comp.position = glm::vec3{
-            std::numeric_limits<float>::quiet_NaN()
-            , std::numeric_limits<float>::quiet_NaN()
-            , std::numeric_limits<float>::quiet_NaN()
-        };
+        comp.position = sphere.centerOfMass;
+    }
+
+    // Lifetime
+    {
+        component::LifetimeComponent& lifetimeComponent = entity.AddComponent<component::LifetimeComponent>();
+        lifetimeComponent.deadline = now + std::chrono::seconds(10);
     }
 
     // Render
@@ -154,7 +154,59 @@ entity::Entity Factory::CreateSphere(double radius)
         pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
 
         system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
-        Primitives::Sphere(*pMesh, radius, 32, 32);
+        Primitives::Sphere(*pMesh, sphere.radius, 32, 32);
+
+        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        renderComp.pMesh = pMesh;
+        renderComp.pMaterial = pMaterial;
+    }
+
+    return entity;
+}
+
+entity::Entity Factory::CreatePlane(arion::Plane const& plane)
+{
+    entity::Entity entity = m_world.CreateEntity();
+
+    // Position
+    {
+        component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
+        comp.position = plane.centerOfMass;
+    }
+
+    // Physics
+    {
+        component::PhysicsComponent& comp = entity.AddComponent<component::PhysicsComponent>();
+        comp.pHandle = m_systems.m_physics.SpawnBody({
+            new arion::Plane(plane)
+            , glm::dvec3(0.0)
+            , std::numeric_limits<double>::quiet_NaN()
+            , 0.0f
+            , Force::Down
+        });
+    }
+
+    // Render
+    {
+        using unicorn::video::Primitives;
+
+        static constexpr float const planeScale = 1000.0f;
+
+        std::random_device rd;
+        std::mt19937 randEngine(rd());
+
+        std::uniform_real_distribution<> colorDistribution(0.8, 1.0);
+
+        system::Render::Material* pMaterial = new system::Render::Material();
+        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        Primitives::Quad(*pMesh);
+        pMesh->Scale(glm::vec3(planeScale, planeScale, 0.0f));
+        pMesh->Rotate(
+            std::acos(glm::dot(glm::dvec3(0, 0, 1), plane.normal))
+            , glm::cross(glm::dvec3(0, 0, 1), plane.normal)
+        );
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
@@ -185,10 +237,9 @@ void Factory::ApplySpherePhysics(entity::Entity sphere, double radius, Orders::P
     }
 
     comp.pHandle = m_systems.m_physics.SpawnBody({
-        new arion::Sphere(glm::dvec3{0, 0, 0}
+        new arion::Sphere(impulse.position
             , radius
         )
-        , impulse.position
         , impulse.velocity
         , (radius * radius * radius) * 4.18879020479
         , 0.9f
@@ -255,7 +306,6 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             component::PhysicsComponent& physicsComponent = entities[i].AddComponent<component::PhysicsComponent>();
             physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
                 pShape
-                , pos
                 , util::math::randvec3(velocityDistribution, randEngine) + order.velocity
                 , side
                 , 0.98f

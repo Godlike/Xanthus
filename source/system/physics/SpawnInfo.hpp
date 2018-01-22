@@ -17,7 +17,6 @@ namespace physics
 struct SpawnInfo
 {
     arion::SimpleShape* pShape;
-    glm::dvec3 position;
     glm::dvec3 velocity;
 
     double mass;

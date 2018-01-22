@@ -7,9 +7,13 @@
 
 #include "component/GridComponent.hpp"
 
+#include <Arion/Shape.hpp>
+
 #include <wink/event_queue.hpp>
 
 #include <glm/glm.hpp>
+
+#include <random>
 
 namespace xanthus
 {
@@ -60,8 +64,13 @@ public:
         wink::event_queue<Projectile> projectiles;
     } orders;
 
-    entity::Entity CreateBox(glm::vec3 position, double size);
-    entity::Entity CreateSphere(double radius);
+    entity::Entity CreateBox(arion::Box const& box
+        , std::uniform_real_distribution<> colorDistribution = std::uniform_real_distribution<>(0.6, 0.8)
+        , double mass = std::numeric_limits<double>::quiet_NaN(), bool physics = true);
+
+    entity::Entity CreateSphere(arion::Sphere const& sphere);
+    entity::Entity CreatePlane(arion::Plane const& plane);
+
     void ApplySpherePhysics(entity::Entity sphere, double radius, Orders::ParticleEffect impulse);
 
 private:

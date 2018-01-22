@@ -44,7 +44,7 @@ pegasus::scene::Handle PegasusAdapter::SpawnBody(SpawnInfo const& info)
     pegasus::mechanics::Body body;
     body.material.damping = info.damping;
 
-    body.linearMotion.position = info.position;
+    body.linearMotion.position = info.pShape->centerOfMass;
     body.linearMotion.velocity = info.velocity;
 
     Primitive::Type primitiveType = Primitive::Type::DYNAMIC;
@@ -105,6 +105,14 @@ pegasus::scene::Handle PegasusAdapter::SpawnBody(SpawnInfo const& info)
     m_forces[static_cast<std::size_t>(info.force)]->Bind(*pPrimitive);
 
     return pPrimitive->GetBodyHandle();
+}
+
+void PegasusAdapter::PushBody(pegasus::scene::Handle bodyHandle, glm::vec3 force)
+{
+    assert(pegasus::scene::Handle() != bodyHandle);
+
+    pegasus::mechanics::Body& body = m_scene.GetBody(bodyHandle);
+    body.linearMotion.velocity += force;
 }
 
 void PegasusAdapter::DeleteBody(pegasus::scene::Handle bodyHandle)
