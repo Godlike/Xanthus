@@ -46,6 +46,9 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
     auto h = pGraphics->GetMonitors().back()->GetActiveVideoMode().height / 2;
     auto w = pGraphics->GetMonitors().back()->GetActiveVideoMode().width / 2;
 
+    w = 1600;
+    h = 900;
+
     settings.SetApplicationHeight(h);
     settings.SetApplicationWidth(w);
 
@@ -66,7 +69,8 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
     pCameraProjection = new unicorn::video::PerspectiveCamera(*pWindow, m_camera.projection);
     pCameraController = new unicorn::video::CameraFpsController(m_camera.view);
 
-    pCameraController->LookAtDirection(glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
+    pCameraController->SetOrientation(glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
+    pCameraController->UpdateTransformMatrix();
 }
 
 void Render::Update()
@@ -79,7 +83,7 @@ void Render::Update()
         component::RenderComponent const& renderComp = entity.GetComponent<component::RenderComponent>();
 
         renderComp.pMesh->SetTranslation(posComp.position);
-        renderComp.pMesh->UpdateModelMatrix();
+        renderComp.pMesh->UpdateTransformMatrix();
     }
 
     std::cerr << "[Render] entity count: " << entities.size() << std::endl;

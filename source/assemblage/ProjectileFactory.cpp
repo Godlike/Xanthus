@@ -64,7 +64,7 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
         Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
 
         pMesh->SetTranslation(order.position);
-        pMesh->UpdateModelMatrix();
+        pMesh->UpdateTransformMatrix();
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;

@@ -299,6 +299,8 @@ void Zone::Deinitialize()
             entity.AddComponent<component::LifetimeComponent>();
         }
     }
+
+    m_spheres.clear();
 }
 
 void Zone::Initialize(assemblage::Factory& factory)

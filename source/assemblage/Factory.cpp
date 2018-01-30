@@ -351,7 +351,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 , std::numeric_limits<float>::quiet_NaN()
                 , std::numeric_limits<float>::quiet_NaN()
             });
-            pMesh->UpdateModelMatrix();
+            pMesh->UpdateTransformMatrix();
 
             component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
             renderComp.pMesh = pMesh;
