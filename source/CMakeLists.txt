@@ -8,6 +8,7 @@ cmake_policy(VERSION 3.0)
 project(Sandbox)
 
 find_package(Threads)
+find_package(MuleUtilities REQUIRED)
 find_package(EponaMath REQUIRED)
 find_package(ArionCollision REQUIRED)
 find_package(UnicornRender REQUIRED)
@@ -15,6 +16,7 @@ find_package(PegasusPhysics REQUIRED)
 
 include_directories(
     SYSTEM
+    ${Mule_INCLUDE_DIRS}
     ${Epona_INCLUDE_DIRS}
     ${Arion_INCLUDE_DIRS}
     ${Unicorn_INCLUDE_DIRS}
@@ -22,6 +24,7 @@ include_directories(
 )
 
 link_directories(
+    ${Mule_LIBRARY_DIRS}
     ${Epona_LIBRARY_DIRS}
     ${Arion_LIBRARY_DIRS}
     ${Unicorn_LIBRARY_DIRS}
@@ -146,6 +149,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(
     ${PROJECT_NAME}
 
+    ${Mule_LIB}
     ${Epona_LIB}
     ${Arion_LIB}
     ${Unicorn_LIB}

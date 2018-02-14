@@ -3,7 +3,7 @@
 
 #include "assemblage/Factory.hpp"
 
-#include <unicorn/utility/templates/Singleton.hpp>
+#include <mule/templates/Singleton.hpp>
 
 #include <Arion/Shape.hpp>
 
@@ -12,7 +12,7 @@ namespace xanthus
 namespace controller
 {
 
-class Zone : public unicorn::utility::templates::Singleton<Zone>
+class Zone : public mule::templates::Singleton<Zone>
 {
 public:
     struct Hole
@@ -40,7 +40,7 @@ public:
     bool isCompleted;
 
 private:
-    friend class unicorn::utility::templates::Singleton<Zone>;
+    friend class mule::templates::Singleton<Zone>;
 
     static constexpr float const s_boxUnit = 0.8f;
     static constexpr std::pair<float, float> const s_playArea = std::pair<float, float>(8.0f, 4.5f);
