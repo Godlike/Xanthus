@@ -129,12 +129,12 @@ void Input::Update()
                 }
                 case Key::A:
                 {
-                    playerForce += cameraRight * cameraMovementSpeed;
+                    playerForce -= cameraRight * cameraMovementSpeed;
                     break;
                 }
                 case Key::D:
                 {
-                    playerForce -= cameraRight * cameraMovementSpeed;
+                    playerForce += cameraRight * cameraMovementSpeed;
                     break;
                 }
 

@@ -65,15 +65,12 @@ void Gameplay::Update()
             statusColor = glm::vec3{0.5f, 0.5f, 0.5f};
         }
 
-        if (statusColor != statusRenderComp.pMaterial->color)
+        if (statusColor != statusRenderComp.pMesh->GetMaterial()->GetColor())
         {
-            delete statusRenderComp.pMaterial;
-
             system::Render::Material* pMaterial = new system::Render::Material();
-            pMaterial->color = statusColor;
+            pMaterial->SetColor(statusColor);
 
-            statusRenderComp.pMesh->SetMaterial(*pMaterial);
-            statusRenderComp.pMaterial = pMaterial;
+            statusRenderComp.pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
         }
     }
 }

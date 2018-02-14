@@ -59,7 +59,6 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
     {
         component::RenderComponent const& renderComponent = entity.GetComponent<component::RenderComponent>();
         m_systems.m_render.DeleteMesh(renderComponent.pMesh);
-        delete renderComponent.pMaterial;
     }
 }
 
@@ -104,9 +103,9 @@ entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distr
         std::mt19937 randEngine(rd());
 
         system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+        pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
         Primitives::Box(*pMesh);
 
         pMesh->Scale(glm::vec3(
@@ -115,9 +114,13 @@ entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distr
             , glm::length(box.kAxis) * 2.0f
         )); // scale to desired size
 
+        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+
+        //! @todo   remove the following call when Unicorn#120 is resolved
+        m_systems.m_render.AddMesh(pMesh);
+
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
-        renderComp.pMaterial = pMaterial;
     }
 
     return entity;
@@ -151,14 +154,18 @@ entity::Entity Factory::CreateSphere(arion::Sphere const& sphere)
         std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
 
         system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+        pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
         Primitives::Sphere(*pMesh, sphere.radius, 32, 32);
+
+        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+
+        //! @todo   remove the following call when Unicorn#120 is resolved
+        m_systems.m_render.AddMesh(pMesh);
 
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
-        renderComp.pMaterial = pMaterial;
     }
 
     return entity;
@@ -198,19 +205,24 @@ entity::Entity Factory::CreatePlane(arion::Plane const& plane)
         std::uniform_real_distribution<> colorDistribution(0.8, 1.0);
 
         system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+        pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
         Primitives::Quad(*pMesh);
+
         pMesh->Scale(glm::vec3(planeScale, planeScale, 0.0f));
         pMesh->Rotate(
             std::acos(glm::dot(glm::dvec3(0, 0, 1), plane.normal))
             , glm::cross(glm::dvec3(0, 0, 1), plane.normal)
         );
 
+        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+
+        //! @todo   remove the following call when Unicorn#120 is resolved
+        m_systems.m_render.AddMesh(pMesh);
+
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
-        renderComp.pMaterial = pMaterial;
     }
 
     return entity;
@@ -318,9 +330,9 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             using unicorn::video::Primitives;
 
             system::Render::Material* pMaterial = new system::Render::Material();
-            pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+            pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-            system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh(*pMaterial);
+            system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
 
             switch (order.type)
             {
@@ -346,6 +358,8 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 }
             }
 
+            //! @todo   remove the following call when Unicorn#121 is resolved
+            const_cast<glm::mat4&>(pMesh->GetModelMatrix()) = glm::mat4(1.0f);
             pMesh->SetTranslation(glm::vec3{
                 std::numeric_limits<float>::quiet_NaN()
                 , std::numeric_limits<float>::quiet_NaN()
@@ -353,9 +367,13 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             });
             pMesh->UpdateTransformMatrix();
 
+            pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+
+            //! @todo   remove the following call when Unicorn#120 is resolved
+            m_systems.m_render.AddMesh(pMesh);
+
             component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
             renderComp.pMesh = pMesh;
-            renderComp.pMaterial = pMaterial;
         }
     }
 }

@@ -58,17 +58,20 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
         std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
 
         system::Render::Material* pMaterial = new system::Render::Material();
-        pMaterial->color = util::math::randvec3(colorDistribution, randEngine);
+        pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_render.SpawnMesh(*pMaterial);
+        system::Render::Mesh* pMesh = m_render.SpawnMesh();
         Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
 
+        //! @todo   remove the following call when Unicorn#121 is resolved
+        const_cast<glm::mat4&>(pMesh->GetModelMatrix()) = glm::mat4(1.0f);
         pMesh->SetTranslation(order.position);
         pMesh->UpdateTransformMatrix();
 
+        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+
         component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
         renderComp.pMesh = pMesh;
-        renderComp.pMaterial = pMaterial;
     }
 
     // Follow position

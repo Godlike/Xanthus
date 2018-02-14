@@ -14,7 +14,6 @@ namespace component
 struct RenderComponent : public Component
 {
     unicorn::video::Mesh* pMesh;
-    unicorn::video::Material* pMaterial;
 
     float rotateAngle = 0.0f;
     glm::vec3 rotateAxes;

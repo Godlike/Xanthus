@@ -69,7 +69,10 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
     pCameraProjection = new unicorn::video::PerspectiveCamera(*pWindow, m_camera.projection);
     pCameraController = new unicorn::video::CameraFpsController(m_camera.view);
 
-    pCameraController->SetOrientation(glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
+    //! @todo   remove the following call when Unicorn#121 is resolved
+    const_cast<glm::mat4&>(pCameraController->GetModelMatrix()) = glm::mat4(1.0f);
+    pCameraController->TranslateLocal(glm::vec3{0.0f, 1.0f, 0.0f});
+    pCameraController->SetOrientation(glm::vec3{0.0f, 0.0f, -1.0f});
     pCameraController->UpdateTransformMatrix();
 }
 
@@ -82,6 +85,8 @@ void Render::Update()
         component::PositionComponent const& posComp = entity.GetComponent<component::PositionComponent>();
         component::RenderComponent const& renderComp = entity.GetComponent<component::RenderComponent>();
 
+        //! @todo   remove the following call when Unicorn#121 is resolved
+        const_cast<glm::mat4&>(renderComp.pMesh->GetModelMatrix()) = glm::mat4(1.0f);
         renderComp.pMesh->SetTranslation(posComp.position);
         renderComp.pMesh->UpdateTransformMatrix();
     }
@@ -89,14 +94,26 @@ void Render::Update()
     std::cerr << "[Render] entity count: " << entities.size() << std::endl;
 }
 
-Render::Mesh* Render::SpawnMesh(Material const& material)
+Render::Mesh* Render::SpawnMesh()
 {
-    return m_pVkRenderer->SpawnMesh(material);
+    Render::Mesh* pMesh = new Render::Mesh();
+
+    //! @todo   uncomment the following call when Unicorn#120 is resolved
+    // m_pVkRenderer->AddMesh(pMesh);
+
+    return pMesh;
+}
+
+void Render::AddMesh(Mesh* pMesh)
+{
+    m_pVkRenderer->AddMesh(pMesh);
 }
 
 void Render::DeleteMesh(Mesh* pMesh)
 {
     m_pVkRenderer->DeleteMesh(pMesh);
+
+    delete pMesh;
 }
 
 void Render::OnRendererDestroyed(unicorn::video::Renderer* pRenderer)

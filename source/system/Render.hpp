@@ -39,7 +39,8 @@ public:
     void Init(unicorn::Settings& settings, unicorn::UnicornRender& render);
     void Update();
 
-    Mesh* SpawnMesh(Material const& material);
+    Mesh* SpawnMesh();
+    void AddMesh(Mesh* pMesh); //! @todo    get rid of this once Unicorn#120 is resolved
     void DeleteMesh(Mesh* pMesh);
 
     unicorn::video::CameraFpsController* pCameraController;
