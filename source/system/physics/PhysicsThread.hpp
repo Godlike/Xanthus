@@ -3,15 +3,15 @@
 
 #include "WorldTime.hpp"
 
+#include "system/physics/BodyController.hpp"
 #include "system/physics/BodyHandle.hpp"
+#include "system/physics/DynamicForceController.hpp"
 #include "system/physics/PegasusAdapter.hpp"
 #include "system/physics/SpawnInfo.hpp"
 
 #include "util/QSBR.hpp"
 
 #include <atomic>
-#include <mutex>
-#include <set>
 #include <thread>
 #include <unordered_map>
 
@@ -41,6 +41,9 @@ public:
     void PushBody(BodyHandle const* pHandle, glm::vec3 force);
     void DeleteBody(BodyHandle const* pHandle);
 
+    void CreateGravitySource(uint32_t id, glm::vec3 position, double magnitude);
+    void DeleteGravitySource(uint32_t id);
+
     WorldTime::TimeUnit GetCurrentTime() const;
 
     util::QSBR memoryReclaimer;
@@ -58,52 +61,9 @@ private:
         std::atomic<uint64_t> currentTimeRaw;
     };
 
-    struct Spawner
-    {
-        struct Order
-        {
-            BodyHandle* pHandle;
-            TimeControl::TimeUnit spawnTime;
-
-            SpawnInfo info;
-        };
-
-        std::mutex mutex;
-        std::list<Order> orders;
-    };
-
-    struct Pusher
-    {
-        struct Order
-        {
-            BodyHandle const* pHandle;
-
-            glm::vec3 force;
-        };
-
-        std::mutex mutex;
-        std::list<Order> orders;
-    };
-
-    struct Deleter
-    {
-        struct Order
-        {
-            BodyHandle const* pHandle;
-
-            TimeControl::TimeUnit deleteTime;
-        };
-
-        std::mutex mutex;
-        std::list<Order> orders;
-    };
-
     void Routine();
 
     void PollPositions();
-    void CheckDeleter();
-    void CheckSpawner();
-    void CheckPusher();
 
     ThreadIndex m_threadId;
     std::thread m_thread;
@@ -115,11 +75,8 @@ private:
 
     PegasusAdapter m_physicsEngine;
 
-    Spawner m_spawner;
-    Pusher m_pusher;
-    Deleter m_deleter;
-
-    std::set<BodyHandle const*> m_deletedHandles;
+    DynamicForceController m_dynamicForceController;
+    BodyController m_bodyController;
 };
 
 }

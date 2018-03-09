@@ -26,10 +26,10 @@ void PegasusAdapter::Init()
     {
         double const force = 9.8;
 
-        m_forces.resize(static_cast<std::size_t>(Force::Count));
+        m_staticForces.resize(static_cast<std::size_t>(Force::Count));
 
-        m_forces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, -force, 0 }));
-        m_forces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, force, 0 }));
+        m_staticForces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, -force, 0 }));
+        m_staticForces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, force, 0 }));
     }
 }
 
@@ -102,7 +102,18 @@ pegasus::scene::Handle PegasusAdapter::SpawnBody(SpawnInfo const& info)
     primitives.push_back(pPrimitive);
     ++primitiveCount;
 
-    m_forces[static_cast<std::size_t>(info.force)]->Bind(*pPrimitive);
+    if (!body.material.HasInfiniteMass())
+    {
+        if (Force::Count != info.force)
+        {
+            m_staticForces[static_cast<std::size_t>(info.force)]->Bind(*pPrimitive);
+        }
+
+        for (auto & force : m_dynamicForces)
+        {
+            force.second->Bind(*pPrimitive);
+        }
+    }
 
     return pPrimitive->GetBodyHandle();
 }
@@ -135,13 +146,25 @@ void PegasusAdapter::DeleteBody(pegasus::scene::Handle bodyHandle)
         primitives.erase(primitiveIt);
         --primitiveCount;
 
-        for (auto& forceIt : m_forces)
+        for (auto& forceIt : m_staticForces)
         {
             forceIt->Unbind(*pPrimitive);
         }
 
         delete pPrimitive;
     }
+}
+
+void PegasusAdapter::CreateGravitySource(uint32_t id, glm::vec3 position, double magnitude)
+{
+    m_dynamicForces[id] = std::make_unique<pegasus::scene::Force<pegasus::force::SquareDistanceSource>>(
+        pegasus::force::SquareDistanceSource(magnitude, position)
+    );
+}
+
+void PegasusAdapter::DeleteGravitySource(uint32_t id)
+{
+    m_dynamicForces.erase(id);
 }
 
 void PegasusAdapter::Run(WorldTime::TimeUnit tick)

@@ -89,13 +89,17 @@ set(SYSTEM_SOURCES
     system/Lifetime.cpp
     system/Lifetime.hpp
 
+    system/physics/BodyController.cpp
+    system/physics/BodyController.hpp
     system/physics/BodyHandle.hpp
+    system/physics/DynamicForceController.cpp
+    system/physics/DynamicForceController.hpp
     system/physics/PegasusAdapter.cpp
     system/physics/PegasusAdapter.hpp
     system/physics/Physics.cpp
     system/physics/Physics.hpp
-    system/physics/PhysicsThread.hpp
     system/physics/PhysicsThread.cpp
+    system/physics/PhysicsThread.hpp
     system/physics/SpawnInfo.hpp
 
     system/Render.cpp

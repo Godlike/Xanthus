@@ -72,6 +72,7 @@ public:
     entity::Entity CreatePlane(arion::Plane const& plane);
 
     void ApplySpherePhysics(entity::Entity sphere, double radius, Orders::ParticleEffect impulse);
+    void ApplyGravitySource(entity::Entity sphere, double radius, double magnitude);
 
 private:
     struct CustomSpawners

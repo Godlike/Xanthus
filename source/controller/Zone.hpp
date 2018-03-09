@@ -88,6 +88,8 @@ private:
     void InitializeHole();
     void InitializeWall(assemblage::Factory& factory);
 
+    void InitializeObstacles(assemblage::Factory& factory);
+
     int32_t WallBorderWidth() const { return static_cast<int32_t>(m_hole.radius / s_boxUnit) + 2; }
 
     uint64_t m_seed;
@@ -102,6 +104,7 @@ private:
     Hole m_hole;
 
     std::vector<entity::Entity> m_spheres;
+    std::vector<entity::Entity> m_obstacles;
 
     std::mt19937_64 m_rngesus;
 };

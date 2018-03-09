@@ -62,6 +62,16 @@ void Physics::DeleteBody(BodyHandle const* pHandle)
     m_physicsThread.DeleteBody(pHandle);
 }
 
+void Physics::CreateGravitySource(uint32_t id, glm::vec3 position, double magnitude)
+{
+    m_physicsThread.CreateGravitySource(id, position, magnitude);
+}
+
+void Physics::DeleteGravitySource(uint32_t id)
+{
+    m_physicsThread.DeleteGravitySource(id);
+}
+
 // Physics::Control::
 
 Physics::Control::Control(entity::World& world, PhysicsThread& physicsThread)

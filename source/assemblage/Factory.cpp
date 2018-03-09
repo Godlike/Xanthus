@@ -52,6 +52,7 @@ void Factory::ReclaimEntity(entity::Entity const& entity)
     if (entity.HasComponent<component::PhysicsComponent>())
     {
         component::PhysicsComponent const& physicsComponent = entity.GetComponent<component::PhysicsComponent>();
+        m_systems.m_physics.DeleteGravitySource(static_cast<uint32_t>(entity.GetId()));
         m_systems.m_physics.DeleteBody(physicsComponent.pHandle);
     }
 
@@ -257,6 +258,54 @@ void Factory::ApplySpherePhysics(entity::Entity sphere, double radius, Orders::P
         , 0.9f
         , force
     });
+}
+
+void Factory::ApplyGravitySource(entity::Entity sphere, double radius, double magnitude)
+{
+    if (sphere.HasComponent<component::LifetimeComponent>())
+    {
+        sphere.DeleteComponent<component::LifetimeComponent>();
+    }
+
+    component::PositionComponent& posComp = sphere.GetComponent<component::PositionComponent>();
+    component::PhysicsComponent& comp = sphere.AddComponent<component::PhysicsComponent>();
+
+    comp.pHandle = m_systems.m_physics.SpawnBody({
+        new arion::Sphere(posComp.position
+            , radius
+        )
+        , glm::dvec3(0)
+        , std::numeric_limits<double>::quiet_NaN()
+        , 1.0
+        , Force::Count
+    });
+
+    {
+        component::RenderComponent& renderComp = sphere.GetComponent<component::RenderComponent>();
+
+        glm::vec3 color(0);
+        static constexpr double const maxMagnitude = 100.0;
+
+        if (magnitude > 0)
+        {
+            color = glm::vec3(1.0f, 0.38f, 0.118f) * static_cast<float>(magnitude / maxMagnitude);
+        }
+        else if (magnitude < 0)
+        {
+            color = glm::vec3(0.47f, 0.82f, 1.0f) * static_cast<float>((-magnitude) / maxMagnitude);
+        }
+
+        renderComp.pMesh->GetMaterial()->SetColor(color);
+    }
+
+    if (0 != magnitude)
+    {
+        m_systems.m_physics.CreateGravitySource(
+            static_cast<uint32_t>(sphere.GetId())
+            , posComp.position
+            , magnitude
+        );
+    }
 }
 
 void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)

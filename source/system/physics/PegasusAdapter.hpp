@@ -33,6 +33,9 @@ public:
     void PushBody(pegasus::scene::Handle bodyHandle, glm::vec3 force);
     void DeleteBody(pegasus::scene::Handle bodyHandle);
 
+    void CreateGravitySource(uint32_t id, glm::vec3 position, double magnitude);
+    void DeleteGravitySource(uint32_t id);
+
     void Run(WorldTime::TimeUnit tick);
 
     Primitives primitives;
@@ -40,9 +43,11 @@ public:
 
 private:
     using Forces = std::vector<std::unique_ptr<pegasus::scene::Force<pegasus::force::StaticField>>>;
+    using GravitySourceMap = std::unordered_map<uint32_t, std::unique_ptr<pegasus::scene::Force<pegasus::force::SquareDistanceSource>>>;
 
     pegasus::scene::Scene& m_scene;
-    Forces m_forces;
+    Forces m_staticForces;
+    GravitySourceMap m_dynamicForces;
 };
 
 }

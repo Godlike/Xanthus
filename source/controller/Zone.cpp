@@ -301,6 +301,16 @@ void Zone::Deinitialize()
     }
 
     m_spheres.clear();
+
+    for (auto & entity : m_obstacles)
+    {
+        if (entity.IsValid())
+        {
+            entity.AddComponent<component::LifetimeComponent>();
+        }
+    }
+
+    m_obstacles.clear();
 }
 
 void Zone::Initialize(assemblage::Factory& factory)
@@ -310,6 +320,8 @@ void Zone::Initialize(assemblage::Factory& factory)
 
     InitializeHole();
     InitializeWall(factory);
+
+    InitializeObstacles(factory);
 
     // Debug hole output
     // factory.CreateBox(m_hole.shape
@@ -468,6 +480,53 @@ void Zone::InitializeWall(assemblage::Factory& factory)
 {
     m_wall.reset(new Wall(m_hole, WallBorderWidth()));
     m_wall->BuildEntities(factory);
+}
+
+void Zone::InitializeObstacles(assemblage::Factory& factory)
+{
+    std::uniform_int_distribution<uint32_t> gravityObstacleCount(0, 3);
+    uint32_t gravityCount = gravityObstacleCount(m_rngesus);
+
+    std::uniform_real_distribution<> xRange(
+        Zone::Wall::s_offset[0],
+        Zone::Wall::s_offset[0] + Zone::Wall::s_size.first * Zone::Wall::s_thickness
+    );
+
+    std::uniform_real_distribution<> yRange(
+        Zone::Wall::s_offset[1],
+        Zone::Wall::s_offset[1] + Zone::Wall::s_size.second * Zone::Wall::s_thickness
+    );
+
+    std::uniform_real_distribution<> zRange(
+        Zone::s_playArea.second,
+        Zone::Wall::s_offset[2]
+    );
+
+    std::uniform_real_distribution<> radiusRange(0.5, 2);
+    std::uniform_real_distribution<> magnitudeRange(-50.0, 50.0);
+
+    for (uint32_t i = 0; i < gravityCount; ++i)
+    {
+        double radius = radiusRange(m_rngesus);
+
+        entity::Entity obstacle = entity::Entity(factory.CreateSphere(
+            arion::Sphere(
+                glm::vec3{
+                    xRange(m_rngesus)
+                    , yRange(m_rngesus)
+                    , zRange(m_rngesus)
+                }
+                , radius
+            )
+        ));
+
+        factory.ApplyGravitySource(obstacle
+            , radius
+            , magnitudeRange(m_rngesus) * radius
+        );
+
+        m_obstacles.push_back(obstacle);
+    }
 }
 
 }

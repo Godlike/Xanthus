@@ -42,6 +42,9 @@ public:
     BodyHandle* SpawnBody(SpawnInfo const& info);
     void DeleteBody(BodyHandle const* pHandle);
 
+    void CreateGravitySource(uint32_t id, glm::vec3 position, double magnitude);
+    void DeleteGravitySource(uint32_t id);
+
     WorldTime::TimeUnit GetCurrentTime() const { return m_physicsThread.GetCurrentTime(); }
 
 private:
