@@ -71,8 +71,8 @@ void Render::Init(unicorn::Settings& settings, unicorn::UnicornRender& render)
 
     //! @todo   remove the following call when Unicorn#121 is resolved
     const_cast<glm::mat4&>(pCameraController->GetModelMatrix()) = glm::mat4(1.0f);
-    pCameraController->TranslateLocal(glm::vec3{0.0f, 1.0f, 0.0f});
-    pCameraController->SetOrientation(glm::vec3{0.0f, 0.0f, -1.0f});
+    pCameraController->TranslateByBasis(glm::vec3{0.0f, 1.0f, 0.0f});
+    pCameraController->SetOrientation(glm::vec3{0.0f, 0.0f, 1.0f});
     pCameraController->UpdateTransformMatrix();
 }
 

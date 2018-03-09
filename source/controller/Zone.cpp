@@ -143,8 +143,8 @@ void Zone::Wall::TryExpand(int32_t x, int32_t y)
 
         while (check[0] || check[1])
         {
-            int32_t db = exp[0] + 1;
-            int32_t dl = exp[1] + 1;
+            int32_t db = exp[0] + (check[0] ? 1 : 0);
+            int32_t dl = exp[1] + (check[1] ? 1 : 0);
 
             if (check[0] && (y - db) < 0)
             {
@@ -183,8 +183,8 @@ void Zone::Wall::TryExpand(int32_t x, int32_t y)
 
         while (check[2] || check[3])
         {
-            int32_t dt = exp[2] + 1;
-            int32_t dr = exp[3] + 1;
+            int32_t dt = exp[2] + (check[2] ? 1 : 0);
+            int32_t dr = exp[3] + (check[3] ? 1 : 0);
 
             if (check[2] && (y + dt) >= Wall::s_size.second)
             {
