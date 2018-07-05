@@ -13,23 +13,21 @@ namespace physics
 
 PegasusAdapter::PegasusAdapter()
     : primitiveCount(0)
-    , m_scene(pegasus::scene::Scene::GetInstance())
+    , m_scene()
 {
 
 }
 
 void PegasusAdapter::Init()
 {
-    m_scene.Initialize(pegasus::scene::AssetManager::GetInstance());
-
     // Forces
     {
         double const force = 9.8;
 
         m_staticForces.resize(static_cast<std::size_t>(Force::Count));
 
-        m_staticForces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, -force, 0 }));
-        m_staticForces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(pegasus::force::StaticField(glm::dvec3{ 0, force, 0 }));
+        m_staticForces[static_cast<std::size_t>(Force::Down)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(m_scene, pegasus::force::StaticField(glm::dvec3{ 0, -force, 0 }));
+        m_staticForces[static_cast<std::size_t>(Force::Up)] = std::make_unique<pegasus::scene::Force<pegasus::force::StaticField>>(m_scene, pegasus::force::StaticField(glm::dvec3{ 0, force, 0 }));
     }
 }
 
@@ -66,7 +64,8 @@ pegasus::scene::Handle PegasusAdapter::SpawnBody(SpawnInfo const& info)
         {
             case Type::PLANE:
             {
-                pPrimitive = new pegasus::scene::Plane(primitiveType
+                pPrimitive = new pegasus::scene::Plane(m_scene
+                    , primitiveType
                     , body
                     , *static_cast<arion::Plane*>(info.pShape)
                 );
@@ -75,18 +74,40 @@ pegasus::scene::Handle PegasusAdapter::SpawnBody(SpawnInfo const& info)
             }
             case Type::BOX:
             {
-                pPrimitive = new pegasus::scene::Box(primitiveType
+                arion::Box& shape = *static_cast<arion::Box*>(info.pShape);
+
+                pPrimitive = new pegasus::scene::Box(m_scene
+                    , primitiveType
                     , body
-                    , *static_cast<arion::Box*>(info.pShape)
+                    , shape
+                );
+
+                body.material.SetMomentOfInertia(
+                    pegasus::mechanics::CalculateSolidCuboidMomentOfInertia(
+                        glm::length(shape.iAxis)
+                        , glm::length(shape.jAxis)
+                        , glm::length(shape.kAxis)
+                        , body.material.GetMass()
+                    )
                 );
 
                 break;
             }
             case Type::SPHERE:
             {
-                pPrimitive = new pegasus::scene::Sphere(primitiveType
+                arion::Sphere& shape = *static_cast<arion::Sphere*>(info.pShape);
+
+                pPrimitive = new pegasus::scene::Sphere(m_scene
+                    , primitiveType
                     , body
-                    , *static_cast<arion::Sphere*>(info.pShape)
+                    , shape
+                );
+
+                body.material.SetMomentOfInertia(
+                    pegasus::mechanics::CalculateSolidSphereMomentOfInertia(
+                        shape.radius
+                        , body.material.GetMass()
+                    )
                 );
 
                 break;
@@ -158,7 +179,8 @@ void PegasusAdapter::DeleteBody(pegasus::scene::Handle bodyHandle)
 void PegasusAdapter::CreateGravitySource(uint32_t id, glm::vec3 position, double magnitude)
 {
     m_dynamicForces[id] = std::make_unique<pegasus::scene::Force<pegasus::force::SquareDistanceSource>>(
-        pegasus::force::SquareDistanceSource(magnitude, position)
+        m_scene
+        , pegasus::force::SquareDistanceSource(magnitude, position)
     );
 }
 

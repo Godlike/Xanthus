@@ -198,6 +198,7 @@ void Input::Update()
 
                     entity::Entity sphere = m_factory.CreateSphere(arion::Sphere(
                         comp.position + glm::vec3(0, 1, 0) * cameraY
+                        , glm::quat()
                         , zone.GetSphereRadius()
                     ));
 

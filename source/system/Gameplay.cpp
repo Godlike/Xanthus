@@ -28,7 +28,7 @@ void Gameplay::Update()
 
         controller::Zone::Hole const& hole = m_zone.GetHole();
 
-        arion::Sphere mockup(glm::vec3(0, 0, 0), m_zone.GetSphereRadius());
+        arion::Sphere mockup(glm::vec3(0, 0, 0), glm::quat(), m_zone.GetSphereRadius());
 
         std::vector<entity::Entity> const& spheres = m_zone.GetSpheres();
 

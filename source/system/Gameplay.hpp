@@ -20,7 +20,8 @@ public:
 
 private:
     controller::Zone& m_zone;
-    arion::SimpleShapeIntersectionDetector m_detector;
+
+    arion::intersection::SimpleShapeIntersectionDetector m_detector;
 };
 
 }

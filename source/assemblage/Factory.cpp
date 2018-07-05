@@ -251,6 +251,7 @@ void Factory::ApplySpherePhysics(entity::Entity sphere, double radius, Orders::P
 
     comp.pHandle = m_systems.m_physics.SpawnBody({
         new arion::Sphere(impulse.position
+            , glm::quat()
             , radius
         )
         , impulse.velocity
@@ -272,6 +273,7 @@ void Factory::ApplyGravitySource(entity::Entity sphere, double radius, double ma
 
     comp.pHandle = m_systems.m_physics.SpawnBody({
         new arion::Sphere(posComp.position
+            , glm::quat()
             , radius
         )
         , glm::dvec3(0)
@@ -350,6 +352,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 case Orders::ParticleEffect::Type::Up:
                 {
                     pShape = new arion::Box(pos
+                        , glm::quat()
                         , glm::dvec3{1, 0, 0} * side
                         , glm::dvec3{0, 1, 0} * side
                         , glm::dvec3{0, 0, 1} * side
@@ -359,7 +362,7 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 case Orders::ParticleEffect::Type::Down:
                 default:
                 {
-                    pShape = new arion::Sphere(pos, side);
+                    pShape = new arion::Sphere(pos, glm::quat(), side);
                     break;
                 }
             }

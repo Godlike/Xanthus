@@ -6,6 +6,8 @@
 #include "system/physics/SpawnInfo.hpp"
 
 #include <pegasus/Scene.hpp>
+#include <pegasus/Primitives.hpp>
+#include <pegasus/Force.hpp>
 
 #include <cstddef>
 #include <list>
@@ -45,7 +47,7 @@ private:
     using Forces = std::vector<std::unique_ptr<pegasus::scene::Force<pegasus::force::StaticField>>>;
     using GravitySourceMap = std::unordered_map<uint32_t, std::unique_ptr<pegasus::scene::Force<pegasus::force::SquareDistanceSource>>>;
 
-    pegasus::scene::Scene& m_scene;
+    pegasus::scene::Scene m_scene;
     Forces m_staticForces;
     GravitySourceMap m_dynamicForces;
 };

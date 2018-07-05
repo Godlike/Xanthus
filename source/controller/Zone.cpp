@@ -123,6 +123,7 @@ void Zone::Wall::BuildEntities(assemblage::Factory& factory)
                 m_entities.push_back(
                     factory.CreateBox(
                         arion::Box(position + Wall::s_offset
+                            , glm::quat()
                             , glm::vec3{1, 0, 0} * static_cast<float>(s.first) * Zone::s_boxUnit * 0.5f
                             , glm::vec3{0, 1, 0} * static_cast<float>(s.second) * Zone::s_boxUnit * 0.5f
                             , glm::vec3{0, 0, 1} * Wall::s_thickness * 0.5f
@@ -343,6 +344,7 @@ void Zone::InitializePlayer(assemblage::Factory& factory)
             factory.CreateBox(
                 arion::Box(
                     glm::vec3{0, 1.0f, 0}
+                    , glm::quat()
                     , glm::vec3{1, 0, 0} * playerSize
                     , glm::vec3{0, 1, 0} * playerSize
                     , glm::vec3{0, 0, 1} * playerSize
@@ -363,6 +365,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
             factory.CreatePlane(
                 arion::Plane(
                     glm::vec3{0, 0, 0}
+                    , glm::quat()
                     , glm::vec3{0, 1, 0}
                 )
             )
@@ -379,6 +382,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
                 , 0.1f + playBorderThickness
                 , 0.0f
             }
+            , glm::quat()
             , glm::vec3{1, 0, 0} * playBorderThickness
             , glm::vec3{0, 1, 0} * playBorderThickness
             , glm::vec3{0, 0, 1} * Zone::s_playArea.second
@@ -394,6 +398,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
                 , 0.1f + playBorderThickness
                 , 0.0f
             }
+            , glm::quat()
             , glm::vec3{1, 0, 0} * playBorderThickness
             , glm::vec3{0, 1, 0} * playBorderThickness
             , glm::vec3{0, 0, 1} * Zone::s_playArea.second
@@ -409,6 +414,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
                 , 0.1f + playBorderThickness
                 , -Zone::s_playArea.second
             }
+            , glm::quat()
             , glm::vec3{1, 0, 0} * Zone::s_playArea.first
             , glm::vec3{0, 1, 0} * playBorderThickness
             , glm::vec3{0, 0, 1} * playBorderThickness
@@ -424,6 +430,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
                 , 0.1f + playBorderThickness
                 , Zone::s_playArea.second
             }
+            , glm::quat()
             , glm::vec3{1, 0, 0} * Zone::s_playArea.first
             , glm::vec3{0, 1, 0} * playBorderThickness
             , glm::vec3{0, 0, 1} * playBorderThickness
@@ -441,6 +448,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
                         , 0.1f + playBorderThickness * 2.0f
                         , -Zone::s_playArea.second
                     }
+                    , glm::quat()
                     , glm::vec3{1, 0, 0} * 0.5f
                     , glm::vec3{0, 1, 0} * 0.5f
                     , glm::vec3{0, 0, 1} * 0.5f
@@ -516,6 +524,7 @@ void Zone::InitializeObstacles(assemblage::Factory& factory)
                     , yRange(m_rngesus)
                     , zRange(m_rngesus)
                 }
+                , glm::quat()
                 , radius
             )
         ));
