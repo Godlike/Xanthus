@@ -5,6 +5,9 @@
 #include "component/LifetimeComponent.hpp"
 #include "component/PositionComponent.hpp"
 
+#include <mule/asset/SimpleStorage.hpp>
+
+#include <cstdio>
 #include <random>
 
 namespace xanthus
@@ -37,6 +40,55 @@ void Zone::ResetPlayer(assemblage::Factory& factory)
 void Zone::RegisterSphere(entity::Entity entity)
 {
     m_spheres.push_back(entity);
+}
+
+void Zone::InitializeAudio(tulpar::TulparAudio& audio)
+{
+    mule::asset::SimpleStorage& storage = mule::asset::SimpleStorage::Instance();
+
+    for (auto& ding : m_dings)
+    {
+        ding.second.Reset();
+        ding.first.Reset();
+    }
+
+    m_dings.clear();
+
+    for (auto& wind : m_winds)
+    {
+        wind.second.Reset();
+        wind.first.Reset();
+    }
+
+    m_winds.clear();
+
+    {
+        char pathBuffer[255];
+
+        for (uint32_t i = 0; i < 3; ++i)
+        {
+            std::pair<tulpar::audio::Buffer, tulpar::audio::Source> sound = { audio.SpawnBuffer(), audio.SpawnSource() };
+
+            sprintf(pathBuffer, "../assets/audio/ding_%02d.ogg", i);
+
+            sound.first.BindData(storage.Get(std::string(pathBuffer)));
+            sound.second.SetStaticBuffer(sound.first);
+
+            m_dings.push_back(sound);
+        }
+
+        for (uint32_t i = 0; i < 5; ++i)
+        {
+            std::pair<tulpar::audio::Buffer, tulpar::audio::Source> sound = { audio.SpawnBuffer(), audio.SpawnSource() };
+
+            sprintf(pathBuffer, "../assets/audio/wind_%02d.ogg", i);
+
+            sound.first.BindData(storage.Get(std::string(pathBuffer)));
+            sound.second.SetStaticBuffer(sound.first);
+
+            m_winds.push_back(sound);
+        }
+    }
 }
 
 // Zone::Wall::
@@ -464,24 +516,42 @@ void Zone::InitializeHole()
     m_hole = Hole();
     m_hole.radius = std::uniform_real_distribution<>((4 * m_sphereRadius), (6 * m_sphereRadius))(m_rngesus);
 
-    int32_t const wallBorder = WallBorderWidth();
+    // position
+    {
+        int32_t const wallBorder = WallBorderWidth();
 
-    std::uniform_int_distribution<int32_t> coordsXDistribution(wallBorder, Wall::s_size.first - wallBorder);
-    std::uniform_int_distribution<int32_t> coordsYDistribution(wallBorder, Wall::s_size.second - wallBorder);
+        std::uniform_int_distribution<int32_t> coordsXDistribution(wallBorder, Wall::s_size.first - wallBorder);
+        std::uniform_int_distribution<int32_t> coordsYDistribution(wallBorder, Wall::s_size.second - wallBorder);
 
-    m_hole.coordinates = {coordsXDistribution(m_rngesus), coordsYDistribution(m_rngesus)};
-    m_hole.position = glm::vec3(
-        static_cast<float>(m_hole.coordinates.first) * Zone::s_boxUnit
-        , static_cast<float>(Wall::s_size.second - 1 - m_hole.coordinates.second) * Zone::s_boxUnit
-        , -Wall::s_thickness
-    ) + Wall::s_offset;
+        m_hole.coordinates = {coordsXDistribution(m_rngesus), coordsYDistribution(m_rngesus)};
+        m_hole.position = glm::vec3(
+            static_cast<float>(m_hole.coordinates.first) * Zone::s_boxUnit
+            , static_cast<float>(Wall::s_size.second - 1 - m_hole.coordinates.second) * Zone::s_boxUnit
+            , -Wall::s_thickness
+        ) + Wall::s_offset;
+    }
 
+    // shape
     m_hole.shape = arion::Box(
         m_hole.position
+        , glm::quat()
         , glm::vec3{1, 0, 0} * m_hole.radius
         , glm::vec3{0, 1, 0} * m_hole.radius
         , glm::vec3{0, 0, 1} * Wall::s_thickness * 0.5f
     );
+
+    // audio
+    {
+        std::uniform_int_distribution<int32_t> dingDistribution(0, m_dings.size() - 1);
+        std::uniform_int_distribution<int32_t> windDistribution(0, m_winds.size() - 1);
+
+        m_hole.sounds.onSuccess = m_dings[dingDistribution(m_rngesus)];
+        m_hole.sounds.onSuccess.second.SetPosition({ m_hole.position[0], m_hole.position[1], m_hole.position[2] });
+
+        m_hole.sounds.onReset = m_winds[windDistribution(m_rngesus)];
+        m_hole.sounds.onReset.second.SetPosition({ m_hole.position[0], m_hole.position[1], m_hole.position[2] });
+        m_hole.sounds.onReset.second.Play();
+    }
 }
 
 void Zone::InitializeWall(assemblage::Factory& factory)

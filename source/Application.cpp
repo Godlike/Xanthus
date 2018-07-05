@@ -9,12 +9,14 @@ namespace xanthus
 
 // Application
 
-Application::Application(unicorn::Settings& settings)
+Application::Application(unicorn::Settings& unicornSettings
+    , tulpar::TulparConfigurator& tulparSettings
+)
     : m_worldTime()
     , m_lastFrameTime(0)
     , m_realTime(true)
     , m_world()
-    , m_systems(settings, m_worldTime, m_world, m_factory)
+    , m_systems(unicornSettings, tulparSettings, m_worldTime, m_world, m_factory)
     , m_factory(m_worldTime, m_world, m_systems)
 {
     if (IsValid())

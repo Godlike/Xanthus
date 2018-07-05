@@ -9,7 +9,8 @@
 namespace xanthus
 {
 
-Systems::Systems(unicorn::Settings& settings
+Systems::Systems(unicorn::Settings& unicornSettings
+    , tulpar::TulparConfigurator& tulparSettings
     , WorldTime& worldTime
     , entity::World& world
     , assemblage::Factory& factory
@@ -25,8 +26,11 @@ Systems::Systems(unicorn::Settings& settings
     , m_gameplay()
     , m_valid(true)
 {
-    if (m_unicornRender.Init())
+    if (m_unicornRender.Init() && m_tulparAudio.Initialize(tulparSettings))
     {
+        //! Register gameplay audio
+        m_gameplay.Init(m_tulparAudio);
+
         //! Registers for window creation events
         m_input.Init();
 
@@ -34,7 +38,7 @@ Systems::Systems(unicorn::Settings& settings
         m_physics.Init();
 
         //! Creates windows and renderers
-        m_render.Init(settings, m_unicornRender);
+        m_render.Init(unicornSettings, m_unicornRender);
     }
     else
     {

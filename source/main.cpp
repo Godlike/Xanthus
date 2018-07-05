@@ -12,6 +12,9 @@
 #include <unicorn/Settings.hpp>
 #include <unicorn/Loggers.hpp>
 
+#include <tulpar/TulparConfigurator.hpp>
+#include <tulpar/Loggers.hpp>
+
 #include <spdlog/sinks/ansicolor_sink.h>
 #include <spdlog/sinks/file_sinks.h>
 
@@ -49,12 +52,24 @@ int main(int argc, char* argv[])
         );
     }
 
-    unicorn::Settings& settings = unicorn::Settings::Instance();
+    {
+        tulpar::Loggers::Instance().SetDefaultSettings(
+            tulpar::Loggers::Settings{
+                std::string()
+                , std::string("%+")
+                , mule::LogLevel::trace
+                , { ansiSink, fileSink }
+            }
+        );
+    }
 
-    settings.Init(argc, argv);
-    settings.SetApplicationName("Sandbox");
+    unicorn::Settings& unicornSettings = unicorn::Settings::Instance();
+    tulpar::TulparConfigurator tulparSettings = {};
 
-    xanthus::Application app(settings);
+    unicornSettings.Init(argc, argv);
+    unicornSettings.SetApplicationName("Sandbox");
+
+    xanthus::Application app(unicornSettings, tulparSettings);
 
     if (app.IsValid())
     {

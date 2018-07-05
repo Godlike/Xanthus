@@ -20,6 +20,11 @@ Gameplay::Gameplay()
 
 }
 
+void Gameplay::Init(tulpar::TulparAudio& audio)
+{
+    m_zone.InitializeAudio(audio);
+}
+
 void Gameplay::Update()
 {
     if (!m_zone.isCompleted)
@@ -53,6 +58,7 @@ void Gameplay::Update()
                     if (m_detector.CalculateIntersection(&hole.shape, &mockup))
                     {
                         statusColor = unicorn::video::Color::Green();
+                        const_cast<controller::Zone::Hole&>(hole).sounds.onSuccess.second.Play();
                         m_zone.isCompleted = true;
 
                         break;

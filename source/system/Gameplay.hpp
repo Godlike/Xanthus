@@ -5,6 +5,8 @@
 
 #include <Arion/SimpleShapeIntersectionDetector.hpp>
 
+#include <tulpar/TulparAudio.hpp>
+
 namespace xanthus
 {
 namespace system
@@ -16,6 +18,7 @@ public:
     Gameplay();
     ~Gameplay() = default;
 
+    void Init(tulpar::TulparAudio& audio);
     void Update();
 
 private:

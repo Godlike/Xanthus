@@ -13,6 +13,9 @@
 #include "system/Time.hpp"
 #include "system/Timer.hpp"
 
+#include <tulpar/TulparAudio.hpp>
+#include <tulpar/TulparConfigurator.hpp>
+
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
 
@@ -27,7 +30,8 @@ namespace assemblage
 class Systems
 {
 public:
-    Systems(unicorn::Settings& settings
+    Systems(unicorn::Settings& unicornSettings
+        , tulpar::TulparConfigurator& tulparSettings
         , WorldTime& worldTime
         , entity::World& world
         , assemblage::Factory& factory
@@ -39,11 +43,13 @@ public:
 
     bool IsValid() const;
     unicorn::UnicornRender& GetRender() { return m_unicornRender; }
+    tulpar::TulparAudio& GetAudio() { return m_tulparAudio; }
 
 private:
     friend class assemblage::Factory;
 
     unicorn::UnicornRender m_unicornRender;
+    tulpar::TulparAudio m_tulparAudio;
 
     system::Time m_time;
     system::Lifetime m_lifetime;

@@ -3,9 +3,15 @@
 
 #include "assemblage/Factory.hpp"
 
+#include <tulpar/audio/Buffer.hpp>
+#include <tulpar/audio/Source.hpp>
+#include <tulpar/TulparAudio.hpp>
+
 #include <mule/templates/Singleton.hpp>
 
 #include <Arion/Shape.hpp>
+
+#include <utility>
 
 namespace xanthus
 {
@@ -17,11 +23,19 @@ class Zone : public mule::templates::Singleton<Zone>
 public:
     struct Hole
     {
+        struct Sounds
+        {
+            std::pair<tulpar::audio::Buffer, tulpar::audio::Source> onSuccess;
+            std::pair<tulpar::audio::Buffer, tulpar::audio::Source> onReset;
+        };
+
         std::pair<int32_t, int32_t> coordinates;
         float radius;
         glm::vec3 position;
 
         arion::Box shape;
+
+        Sounds sounds;
     };
 
     uint64_t GetSeed() const { return m_seed; }
@@ -36,6 +50,8 @@ public:
     double GetSphereRadius() const { return m_sphereRadius; }
     void RegisterSphere(entity::Entity entity);
     std::vector<entity::Entity> const& GetSpheres() const { return m_spheres; }
+
+    void InitializeAudio(tulpar::TulparAudio& audio);
 
     bool isCompleted;
 
@@ -107,6 +123,9 @@ private:
     std::vector<entity::Entity> m_obstacles;
 
     std::mt19937_64 m_rngesus;
+
+    std::vector< std::pair<tulpar::audio::Buffer, tulpar::audio::Source> > m_dings;
+    std::vector< std::pair<tulpar::audio::Buffer, tulpar::audio::Source> > m_winds;
 };
 
 }

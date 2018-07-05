@@ -13,6 +13,7 @@ find_package(EponaMath REQUIRED)
 find_package(ArionCollision REQUIRED)
 find_package(UnicornRender REQUIRED)
 find_package(PegasusPhysics REQUIRED)
+find_package(TulparAudio REQUIRED)
 
 include_directories(
     SYSTEM
@@ -21,6 +22,7 @@ include_directories(
     ${Arion_INCLUDE_DIRS}
     ${Unicorn_INCLUDE_DIRS}
     ${Pegasus_INCLUDE_DIRS}
+    ${Tulpar_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -29,6 +31,7 @@ link_directories(
     ${Arion_LIBRARY_DIRS}
     ${Unicorn_LIBRARY_DIRS}
     ${Pegasus_LIBRARY_DIRS}
+    ${Tulpar_LIBRARY_DIRS}
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -158,5 +161,6 @@ target_link_libraries(
     ${Arion_LIB}
     ${Unicorn_LIB}
     ${Pegasus_LIB}
+    ${Tulpar_LIB}
     ${CMAKE_THREAD_LIBS_INIT}
 )

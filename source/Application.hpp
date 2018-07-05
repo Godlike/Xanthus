@@ -8,6 +8,8 @@
 
 #include "assemblage/Factory.hpp"
 
+#include <tulpar/TulparConfigurator.hpp>
+
 #include <unicorn/Settings.hpp>
 #include <unicorn/UnicornRender.hpp>
 
@@ -24,7 +26,9 @@ class Application
 public:
     using TimeUnit = WorldTime::TimeUnit;
 
-    Application(unicorn::Settings& settings);
+    Application(unicorn::Settings& unicornSettings
+        , tulpar::TulparConfigurator& tulparSettings
+    );
     ~Application();
 
     bool IsValid() const;
