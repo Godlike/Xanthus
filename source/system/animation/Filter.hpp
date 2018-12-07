@@ -1,6 +1,9 @@
 #ifndef XANTHUS_SYSTEM_ANIMATION_FILTER_HPP
 #define XANTHUS_SYSTEM_ANIMATION_FILTER_HPP
 
+#include <sleipnir/ecs/component/PositionComponent.hpp>
+#include <sleipnir/ecs/WorldTime.hpp>
+
 namespace xanthus
 {
 
@@ -18,15 +21,17 @@ namespace system
 namespace animation
 {
 
+using WorldTime = sleipnir::ecs::WorldTime;
+
 typedef void (*FilterFunc)(
     WorldTime::TimeUnit now
-    , component::PositionComponent& positionComponent
+    , sleipnir::ecs::component::PositionComponent& positionComponent
     , component::FollowPositionComponent& followComponent
 );
 
 typedef void (*MoveFilterFunc)(
     WorldTime::TimeUnit now
-    , component::PositionComponent& positionComponent
+    , sleipnir::ecs::component::PositionComponent& positionComponent
     , component::MoveComponent& moveComponent
 );
 

@@ -8,31 +8,7 @@ cmake_policy(VERSION 3.0)
 project(Sandbox)
 
 find_package(Threads)
-find_package(MuleUtilities REQUIRED)
-find_package(EponaMath REQUIRED)
-find_package(ArionCollision REQUIRED)
-find_package(UnicornRender REQUIRED)
-find_package(PegasusPhysics REQUIRED)
-find_package(TulparAudio REQUIRED)
-
-include_directories(
-    SYSTEM
-    ${Mule_INCLUDE_DIRS}
-    ${Epona_INCLUDE_DIRS}
-    ${Arion_INCLUDE_DIRS}
-    ${Unicorn_INCLUDE_DIRS}
-    ${Pegasus_INCLUDE_DIRS}
-    ${Tulpar_INCLUDE_DIRS}
-)
-
-link_directories(
-    ${Mule_LIBRARY_DIRS}
-    ${Epona_LIBRARY_DIRS}
-    ${Arion_LIBRARY_DIRS}
-    ${Unicorn_LIBRARY_DIRS}
-    ${Pegasus_LIBRARY_DIRS}
-    ${Tulpar_LIBRARY_DIRS}
-)
+find_package(SleipnirEngine REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -44,37 +20,15 @@ set(ASSEMBLAGE_SOURCES
     assemblage/ProjectileFactory.hpp
 )
 
-set(ENTITY_SOURCES
-    entity/Entity.cpp
-    entity/Entity.hpp
-    entity/Entity.imp
-
-    entity/EntityPool.cpp
-    entity/EntityPool.hpp
-
-    entity/World.cpp
-    entity/World.hpp
-)
-
 set(COMPONENT_SOURCES
-    component/Flags.hpp
-    component/Flags.imp
-
     component/ControlComponent.hpp
-    component/DummyComponent.hpp
     component/EntitySnapComponent.hpp
-    component/LifetimeComponent.hpp
-    component/PhysicsComponent.hpp
-    component/PositionComponent.hpp
-    component/RenderComponent.hpp
-    component/TimerComponent.hpp
     component/FollowPositionComponent.hpp
+    component/GridComponent.hpp
+    component/MoveComponent.hpp
 )
 
 set(SYSTEM_SOURCES
-    system/Skeleton.hpp
-    system/Skeleton.imp
-
     system/animation/Filter.hpp
     system/animation/Linear.cpp
     system/animation/Linear.hpp
@@ -88,31 +42,6 @@ set(SYSTEM_SOURCES
 
     system/Input.cpp
     system/Input.hpp
-
-    system/Lifetime.cpp
-    system/Lifetime.hpp
-
-    system/physics/BodyController.cpp
-    system/physics/BodyController.hpp
-    system/physics/BodyHandle.hpp
-    system/physics/DynamicForceController.cpp
-    system/physics/DynamicForceController.hpp
-    system/physics/PegasusAdapter.cpp
-    system/physics/PegasusAdapter.hpp
-    system/physics/Physics.cpp
-    system/physics/Physics.hpp
-    system/physics/PhysicsThread.cpp
-    system/physics/PhysicsThread.hpp
-    system/physics/SpawnInfo.hpp
-
-    system/Render.cpp
-    system/Render.hpp
-
-    system/Time.cpp
-    system/Time.hpp
-
-    system/Timer.cpp
-    system/Timer.hpp
 )
 
 set(UTIL_SOURCES
@@ -142,7 +71,6 @@ add_executable(${PROJECT_NAME}
 
     WorldTime.hpp
 
-    ${ENTITY_SOURCES}
     ${COMPONENT_SOURCES}
     ${SYSTEM_SOURCES}
 
@@ -156,11 +84,5 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(
     ${PROJECT_NAME}
 
-    ${Mule_LIB}
-    ${Epona_LIB}
-    ${Arion_LIB}
-    ${Unicorn_LIB}
-    ${Pegasus_LIB}
-    ${Tulpar_LIB}
-    ${CMAKE_THREAD_LIBS_INIT}
+    Sleipnir::Engine
 )

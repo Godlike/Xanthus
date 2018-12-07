@@ -2,15 +2,16 @@
 
 #include "assemblage/Factory.hpp"
 
-#include "component/LifetimeComponent.hpp"
-#include "component/PositionComponent.hpp"
-#include "component/TimerComponent.hpp"
 #include "component/FollowPositionComponent.hpp"
 
 #include "system/animation/Linear.hpp"
-#include "system/Render.hpp"
 
 #include "util/Math.hpp"
+
+#include <sleipnir/ecs/component/LifetimeComponent.hpp>
+#include <sleipnir/ecs/component/PositionComponent.hpp>
+#include <sleipnir/ecs/component/TimerComponent.hpp>
+#include <sleipnir/ecs/Systems.hpp>
 
 #include <unicorn/video/Primitives.hpp>
 
@@ -23,27 +24,24 @@ namespace xanthus
 namespace assemblage
 {
 
-using namespace xanthus::component;
-
-ProjectileFactory::ProjectileFactory(WorldTime const& worldTime
-    , Factory& factory
-    , system::Render& render
+ProjectileFactory::ProjectileFactory(sleipnir::SleipnirEngine& engine
+    , assemblage::Factory& factory
 )
-    : m_worldTime(worldTime)
+    : m_worldTime(engine.GetWorldTime())
     , m_factory(factory)
-    , m_render(render)
+    , m_render(engine.GetSystems().GetRender())
 {
 
 }
 
-void ProjectileFactory::Create(entity::Entity entity, Order const& order)
+void ProjectileFactory::Create(sleipnir::ecs::entity::Entity entity, Order const& order)
 {
     WorldTime::TimeUnit const now = m_worldTime.GetTime();
     WorldTime::TimeUnit const end = now + WorldTime::TimeUnit(std::chrono::seconds(1));
 
     // Position
     {
-        component::PositionComponent& positionComponent = entity.AddComponent<component::PositionComponent>();
+        sleipnir::ecs::component::PositionComponent& positionComponent = entity.AddComponent<sleipnir::ecs::component::PositionComponent>();
         positionComponent.position = order.position;
     }
 
@@ -57,10 +55,10 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
         std::uniform_real_distribution<> sizeDistribution(2.0, 7.0);
         std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
 
-        system::Render::Material* pMaterial = new system::Render::Material();
+        sleipnir::ecs::system::Render::Material* pMaterial = new sleipnir::ecs::system::Render::Material();
         pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_render.SpawnMesh();
+        sleipnir::ecs::system::Render::Mesh* pMesh = m_render.SpawnMesh();
         Primitives::Sphere(*pMesh, sizeDistribution(randEngine), 16, 16);
 
         //! @todo   remove the following call when Unicorn#121 is resolved
@@ -68,9 +66,9 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
         pMesh->SetTranslation(order.position);
         pMesh->UpdateTransformMatrix();
 
-        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+        pMesh->SetMaterial(std::shared_ptr<sleipnir::ecs::system::Render::Material>(pMaterial));
 
-        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        sleipnir::ecs::component::RenderComponent& renderComp = entity.AddComponent<sleipnir::ecs::component::RenderComponent>();
         renderComp.pMesh = pMesh;
     }
 
@@ -93,7 +91,7 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
 
     // Timer
     {
-        component::TimerComponent& timerComponent = entity.AddComponent<component::TimerComponent>();
+        sleipnir::ecs::component::TimerComponent& timerComponent = entity.AddComponent<sleipnir::ecs::component::TimerComponent>();
 
         timerComponent.lastTime = now;
         timerComponent.endTime = end;
@@ -103,16 +101,16 @@ void ProjectileFactory::Create(entity::Entity entity, Order const& order)
     }
 }
 
-void ProjectileFactory::Delete(entity::Entity entity)
+void ProjectileFactory::Delete(sleipnir::ecs::entity::Entity entity)
 {
-    entity.AddComponent<LifetimeComponent>();
+    entity.AddComponent<sleipnir::ecs::component::LifetimeComponent>();
 }
 
-void ProjectileFactory::Tick(entity::Entity entity)
+void ProjectileFactory::Tick(sleipnir::ecs::entity::Entity entity)
 {
     using ParticleEffect = Factory::Orders::ParticleEffect;
 
-    PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
+    sleipnir::ecs::component::PositionComponent const& posComp = entity.GetComponent<sleipnir::ecs::component::PositionComponent>();
 
     m_factory.orders.particleEffects.push(ParticleEffect{
         posComp.position
@@ -123,12 +121,12 @@ void ProjectileFactory::Tick(entity::Entity entity)
     });
 }
 
-void ProjectileFactory::Hit(entity::Entity entity)
+void ProjectileFactory::Hit(sleipnir::ecs::entity::Entity entity)
 {
     using ParticleEffect = Factory::Orders::ParticleEffect;
 
-    FollowPositionComponent const& animComp = entity.GetComponent<FollowPositionComponent>();
-    PositionComponent const& posComp = entity.GetComponent<PositionComponent>();
+    component::FollowPositionComponent const& animComp = entity.GetComponent<component::FollowPositionComponent>();
+    sleipnir::ecs::component::PositionComponent const& posComp = entity.GetComponent<sleipnir::ecs::component::PositionComponent>();
 
     glm::vec3 path = posComp.position - animComp.startPosition;
 

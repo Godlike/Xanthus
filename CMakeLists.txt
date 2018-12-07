@@ -7,7 +7,7 @@ cmake_policy(VERSION 3.0)
 
 project(XanthusProject)
 
-option(XANTHUS_BUILD_TESTS "Build tests" ON)
+option(XANTHUS_BUILD_TESTS "Build tests" OFF)
 option(XANTHUS_VERBOSE_TESTS "Verbose test output" ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)

@@ -9,11 +9,13 @@
 #include <mule/MuleUtilities.hpp>
 #include <mule/Loggers.hpp>
 
-#include <unicorn/Settings.hpp>
+#include <unicorn/utility/Settings.hpp>
 #include <unicorn/Loggers.hpp>
 
 #include <tulpar/TulparConfigurator.hpp>
 #include <tulpar/Loggers.hpp>
+
+#include <sleipnir/SleipnirEngine.hpp>
 
 #include <spdlog/sinks/ansicolor_sink.h>
 #include <spdlog/sinks/file_sinks.h>
@@ -28,59 +30,37 @@ int main(int argc, char* argv[])
 
     auto fileSink = std::make_shared<spdlog::sinks::simple_file_sink_mt>("xanthus.log", true);
 
-    {
-        mule::Loggers::Instance().SetDefaultSettings(
-            mule::Loggers::Settings{
-                std::string()
-                , std::string("%+")
-                , mule::LogLevel::trace
-                , { ansiSink, fileSink }
-            }
-        );
-    }
+    sleipnir::SleipnirConfigurator config;
 
-    mule::MuleUtilities::Initialize();
+    config.globalLoggerSettings = mule::LoggerConfigBase::Settings{
+        std::string()
+        , std::string("%+")
+        , mule::LogLevel::trace
+        , { ansiSink, fileSink }
+    };
 
-    {
-        unicorn::Loggers::Instance().SetDefaultSettings(
-            unicorn::Loggers::Settings{
-                std::string()
-                , std::string("%+")
-                , mule::LogLevel::trace
-                , { ansiSink, fileSink }
-            }
-        );
-    }
+    tulpar::TulparConfigurator tulparConfig;
 
-    {
-        tulpar::Loggers::Instance().SetDefaultSettings(
-            tulpar::Loggers::Settings{
-                std::string()
-                , std::string("%+")
-                , mule::LogLevel::trace
-                , { ansiSink, fileSink }
-            }
-        );
-    }
-
-    unicorn::Settings& unicornSettings = unicorn::Settings::Instance();
-    tulpar::TulparConfigurator tulparSettings = {};
-
-    unicornSettings.Init(argc, argv);
+    unicorn::utility::Settings& unicornSettings = unicorn::utility::Settings::Instance();
     unicornSettings.SetApplicationName("Sandbox");
 
-    xanthus::Application app(unicornSettings, tulparSettings);
+    config.tulpar.config = &tulparConfig;
+    config.unicorn.config = &unicornSettings;
+    config.pegasus.config = reinterpret_cast<void*>(0x1);
 
-    if (app.IsValid())
+    sleipnir::SleipnirEngine engine = {};
+    if (engine.Initialize(config))
     {
+        xanthus::Application app(engine);
+
         app.Run();
     }
     else
     {
-        std::cerr << "Failed to run application!" << std::endl;
+        std::cerr << "Failed to initialize SleipnirEngine!" << std::endl;
     }
 
-    unicorn::Settings::Destroy();
+    unicorn::utility::Settings::Destroy();
 
     return EXIT_SUCCESS;
 }

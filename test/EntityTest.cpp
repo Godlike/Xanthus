@@ -1,10 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "entity/Entity.hpp"
-#include "entity/World.hpp"
-
 #include "util/Types.hpp"
+
+#include <sleipnir/ecs/entity/Entity.hpp>
+#include <sleipnir/ecs/entity/World.hpp>
 
 #include <cstdint>
 

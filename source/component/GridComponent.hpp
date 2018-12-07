@@ -2,7 +2,8 @@
 #define XANTHUS_COMPONENT_GRID_COMPONENT_HPP
 
 #include "util/Config.hpp"
-#include "util/Types.hpp"
+
+#include <sleipnir/ecs/Types.hpp>
 
 #include <glm/glm.hpp>
 
@@ -11,7 +12,7 @@ namespace xanthus
 namespace component
 {
 
-struct GridComponent : public Component
+struct GridComponent : public sleipnir::ecs::Component
 {
     struct Hasher
     {

@@ -1,13 +1,17 @@
 #ifndef XANTHUS_ASSEMBLAGE_FACTORY_HPP
 #define XANTHUS_ASSEMBLAGE_FACTORY_HPP
 
-#include "WorldTime.hpp"
+#include <sleipnir/ecs/WorldTime.hpp>
 
 #include "assemblage/ProjectileFactory.hpp"
 
 #include "component/GridComponent.hpp"
 
 #include <Arion/Shape.hpp>
+
+#include <sleipnir/ecs/system/physics/Physics.hpp>
+#include <sleipnir/ecs/system/Render.hpp>
+#include <sleipnir/SleipnirEngine.hpp>
 
 #include <wink/event_queue.hpp>
 
@@ -32,11 +36,13 @@ namespace assemblage
 class Factory
 {
 public:
-    Factory(WorldTime& worldTime, entity::World& world, Systems& systems);
+    using WorldTime = sleipnir::ecs::WorldTime;
+
+    Factory(sleipnir::SleipnirEngine& engine);
     ~Factory() = default;
 
     void ExecuteOrders();
-    void ReclaimEntity(entity::Entity const& entity);
+    void ReclaimEntity(sleipnir::ecs::entity::Entity const& entity);
 
     struct Orders
     {
@@ -64,20 +70,20 @@ public:
         wink::event_queue<Projectile> projectiles;
     } orders;
 
-    entity::Entity CreateBox(arion::Box const& box
+    sleipnir::ecs::entity::Entity CreateBox(arion::Box const& box
         , std::uniform_real_distribution<> colorDistribution = std::uniform_real_distribution<>(0.6, 0.8)
         , double mass = std::numeric_limits<double>::quiet_NaN(), bool physics = true);
 
-    entity::Entity CreateSphere(arion::Sphere const& sphere);
-    entity::Entity CreatePlane(arion::Plane const& plane);
+    sleipnir::ecs::entity::Entity CreateSphere(arion::Sphere const& sphere);
+    sleipnir::ecs::entity::Entity CreatePlane(arion::Plane const& plane);
 
-    void ApplySpherePhysics(entity::Entity sphere, double radius, Orders::ParticleEffect impulse);
-    void ApplyGravitySource(entity::Entity sphere, double radius, double magnitude);
+    void ApplySpherePhysics(sleipnir::ecs::entity::Entity sphere, double radius, Orders::ParticleEffect impulse);
+    void ApplyGravitySource(sleipnir::ecs::entity::Entity sphere, double radius, double magnitude);
 
 private:
     struct CustomSpawners
     {
-        CustomSpawners(WorldTime& worldTime, Factory& factory, Systems& systems);
+        CustomSpawners(sleipnir::SleipnirEngine& engine, Factory& factory);
 
         ProjectileFactory projectile;
     };
@@ -86,8 +92,10 @@ private:
     void CreateProjectile(Orders::Projectile const& order);
 
     WorldTime& m_worldTime;
-    entity::World& m_world;
-    Systems& m_systems;
+    sleipnir::ecs::entity::World& m_world;
+
+    sleipnir::ecs::system::Render& m_render;
+    sleipnir::ecs::system::physics::Physics& m_physics;
 
     CustomSpawners m_spawners;
 };

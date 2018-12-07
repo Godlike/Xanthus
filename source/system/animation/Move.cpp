@@ -7,10 +7,10 @@ namespace system
 namespace animation
 {
 
-Move::Move(entity::World& world
+Move::Move(sleipnir::ecs::entity::World& world
     , WorldTime& worldTime
 )
-    : Skeleton<component::PositionComponent, component::MoveComponent>(world)
+    : Skeleton<sleipnir::ecs::component::PositionComponent, component::MoveComponent>(world)
     , m_worldTime(worldTime)
 {
 
@@ -20,11 +20,11 @@ void Move::Update()
 {
     WorldTime::TimeUnit now = m_worldTime.GetTime();
 
-    entity::World::Entities entities = GetEntities();
+    sleipnir::ecs::entity::World::Entities entities = GetEntities();
 
-    for (entity::Entity& entity : entities)
+    for (sleipnir::ecs::entity::Entity& entity : entities)
     {
-        component::PositionComponent& posComp = entity.GetComponent<component::PositionComponent>();
+        sleipnir::ecs::component::PositionComponent& posComp = entity.GetComponent<sleipnir::ecs::component::PositionComponent>();
         component::MoveComponent& moveComp = entity.GetComponent<component::MoveComponent>();
 
         moveComp.pFilter(now, posComp, moveComp);

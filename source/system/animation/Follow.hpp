@@ -1,14 +1,12 @@
 #ifndef XANTHUS_SYSTEM_ANIMATION_FOLLOW_HPP
 #define XANTHUS_SYSTEM_ANIMATION_FOLLOW_HPP
 
-#include "WorldTime.hpp"
-
-#include "entity/World.hpp"
-
-#include "component/PositionComponent.hpp"
 #include "component/FollowPositionComponent.hpp"
 
-#include "system/Skeleton.hpp"
+#include <sleipnir/ecs/component/PositionComponent.hpp>
+#include <sleipnir/ecs/entity/World.hpp>
+#include <sleipnir/ecs/system/Skeleton.hpp>
+#include <sleipnir/ecs/WorldTime.hpp>
 
 namespace xanthus
 {
@@ -17,10 +15,13 @@ namespace system
 namespace animation
 {
 
-class Follow : public Skeleton<component::PositionComponent, component::FollowPositionComponent>
+class Follow
+    : public sleipnir::ecs::system::Skeleton<sleipnir::ecs::component::PositionComponent, component::FollowPositionComponent>
 {
 public:
-    Follow(entity::World& world
+    using WorldTime = sleipnir::ecs::WorldTime;
+
+    Follow(sleipnir::ecs::entity::World& world
         , WorldTime& worldTime);
     ~Follow() = default;
 

@@ -14,11 +14,11 @@ namespace animation
 
 void Linear(
     WorldTime::TimeUnit now
-    , component::PositionComponent& positionComponent
+    , sleipnir::ecs::component::PositionComponent& positionComponent
     , component::FollowPositionComponent& followComponent
 )
 {
-    glm::vec3 const& targetPosition = followComponent.target.GetComponent<component::PositionComponent>().position;
+    glm::vec3 const& targetPosition = followComponent.target.GetComponent<sleipnir::ecs::component::PositionComponent>().position;
 
     glm::vec3 const path = targetPosition - followComponent.startPosition;
     glm::vec3 const direction = glm::normalize(path);
@@ -32,7 +32,7 @@ void Linear(
 
 void Linear(
     WorldTime::TimeUnit now
-    , component::PositionComponent& positionComponent
+    , sleipnir::ecs::component::PositionComponent& positionComponent
     , component::MoveComponent& moveComponent
 )
 {

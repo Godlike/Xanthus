@@ -1,11 +1,11 @@
 #ifndef XANTHUS_ASSEMBLAGE_PROJECTILE_FACTORY_HPP
 #define XANTHUS_ASSEMBLAGE_PROJECTILE_FACTORY_HPP
 
-#include "WorldTime.hpp"
+#include <sleipnir/SleipnirEngine.hpp>
 
-#include "entity/Entity.hpp"
-
-#include "system/Render.hpp"
+#include <sleipnir/ecs/WorldTime.hpp>
+#include <sleipnir/ecs/entity/Entity.hpp>
+#include <sleipnir/ecs/system/Render.hpp>
 
 #include <glm/glm.hpp>
 
@@ -25,29 +25,28 @@ class Factory;
 class ProjectileFactory
 {
 public:
+    using WorldTime = sleipnir::ecs::WorldTime;
+
     struct Order
     {
         glm::vec3 position;
-        entity::Entity target;
+        sleipnir::ecs::entity::Entity target;
 
-        wink::signal< wink::slot<void(entity::Entity)> > onComplete;
+        wink::signal< wink::slot<void(sleipnir::ecs::entity::Entity)> > onComplete;
     };
 
-    ProjectileFactory(WorldTime const& worldTime
-        , assemblage::Factory& factory
-        , system::Render& render
-    );
+    ProjectileFactory(sleipnir::SleipnirEngine& engine, assemblage::Factory& factory);
 
-    static void Delete(entity::Entity entity);
+    static void Delete(sleipnir::ecs::entity::Entity entity);
 
-    void Create(entity::Entity entity, Order const& order);
-    void Tick(entity::Entity entity);
-    void Hit(entity::Entity entity);
+    void Create(sleipnir::ecs::entity::Entity entity, Order const& order);
+    void Tick(sleipnir::ecs::entity::Entity entity);
+    void Hit(sleipnir::ecs::entity::Entity entity);
 
 private:
     WorldTime const& m_worldTime;
     assemblage::Factory& m_factory;
-    system::Render& m_render;
+    sleipnir::ecs::system::Render& m_render;
 };
 
 }

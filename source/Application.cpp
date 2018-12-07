@@ -9,24 +9,15 @@ namespace xanthus
 
 // Application
 
-Application::Application(unicorn::Settings& unicornSettings
-    , tulpar::TulparConfigurator& tulparSettings
-)
-    : m_worldTime()
+Application::Application(sleipnir::SleipnirEngine& engine)
+    : m_engine(engine)
+    , m_systems(engine.GetSystems())
     , m_lastFrameTime(0)
     , m_realTime(true)
-    , m_world()
-    , m_systems(unicornSettings, tulparSettings, m_worldTime, m_world, m_factory)
-    , m_factory(m_worldTime, m_world, m_systems)
+    , m_factory(engine)
+    , m_customSystems(engine, m_factory)
 {
-    if (IsValid())
-    {
-        m_systems.GetRender().LogicFrame.connect(this, &Application::OnLogicFrame);
-    }
-    else
-    {
-        std::cerr << "Failed to initialize all systems!" << std::endl;
-    }
+    m_engine.GetRender().LogicFrame.connect(this, &Application::OnLogicFrame);
 }
 
 Application::~Application()
@@ -34,16 +25,11 @@ Application::~Application()
 
 }
 
-bool Application::IsValid() const
-{
-    return m_systems.IsValid();
-}
-
 void Application::Run()
 {
     controller::Zone::Instance().Reset(0x1337, m_factory);
 
-    m_systems.GetRender().Run();
+    m_engine.GetRender().Run();
 }
 
 void Application::OnLogicFrame(unicorn::UnicornRender* /*render*/)
@@ -62,7 +48,7 @@ void Application::OnLogicFrame(unicorn::UnicornRender* /*render*/)
         return;
     }
 
-    m_systems.Update(frameDelta);
+    m_systems.RunOnce(frameDelta);
     m_factory.ExecuteOrders();
 
     m_lastFrameTime = m_realTime.ElapsedMilliseconds();

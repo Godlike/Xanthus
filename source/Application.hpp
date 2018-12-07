@@ -2,18 +2,13 @@
 #define XANTHUS_APPLICATION_HPP
 
 #include "Systems.hpp"
-#include "WorldTime.hpp"
-
-#include "entity/World.hpp"
 
 #include "assemblage/Factory.hpp"
 
-#include <tulpar/TulparConfigurator.hpp>
-
-#include <unicorn/Settings.hpp>
-#include <unicorn/UnicornRender.hpp>
-
-#include <unicorn/system/Timer.hpp>
+#include <sleipnir/ecs/entity/World.hpp>
+#include <sleipnir/ecs/Systems.hpp>
+#include <sleipnir/ecs/WorldTime.hpp>
+#include <sleipnir/SleipnirEngine.hpp>
 
 #include <chrono>
 #include <list>
@@ -24,14 +19,11 @@ namespace xanthus
 class Application
 {
 public:
-    using TimeUnit = WorldTime::TimeUnit;
+    using TimeUnit = sleipnir::ecs::WorldTime::TimeUnit;
 
-    Application(unicorn::Settings& unicornSettings
-        , tulpar::TulparConfigurator& tulparSettings
-    );
+    Application(sleipnir::SleipnirEngine& engine);
     ~Application();
 
-    bool IsValid() const;
     void Run();
 
 private:
@@ -39,14 +31,15 @@ private:
 
     void OnLogicFrame(unicorn::UnicornRender* pRender);
 
-    WorldTime m_worldTime;
+    sleipnir::SleipnirEngine& m_engine;
+    sleipnir::ecs::Systems& m_systems;
+
     TimeUnit m_lastFrameTime;
     unicorn::system::Timer m_realTime;
 
-    entity::World m_world;
-    Systems m_systems;
-
     assemblage::Factory m_factory;
+
+    Systems m_customSystems;
 };
 
 }

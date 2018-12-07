@@ -2,8 +2,8 @@
 
 #include "util/Config.hpp"
 
-#include "component/LifetimeComponent.hpp"
-#include "component/PositionComponent.hpp"
+#include <sleipnir/ecs/component/LifetimeComponent.hpp>
+#include <sleipnir/ecs/component/PositionComponent.hpp>
 
 #include <mule/asset/SimpleStorage.hpp>
 
@@ -16,6 +16,8 @@ namespace controller
 {
 
 // Zone::
+
+std::pair<float, float> const Zone::s_playArea = std::pair<float, float>(8.0f, 4.5f);
 
 void Zone::Reset(uint64_t seed, assemblage::Factory& factory)
 {
@@ -31,13 +33,13 @@ void Zone::ResetPlayer(assemblage::Factory& factory)
 {
     if (nullptr != m_player.get() && m_player->IsValid())
     {
-        m_player->AddComponent<component::LifetimeComponent>();
+        m_player->AddComponent<sleipnir::ecs::component::LifetimeComponent>();
     }
 
     InitializePlayer(factory);
 }
 
-void Zone::RegisterSphere(entity::Entity entity)
+void Zone::RegisterSphere(sleipnir::ecs::entity::Entity entity)
 {
     m_spheres.push_back(entity);
 }
@@ -73,6 +75,7 @@ void Zone::InitializeAudio(tulpar::TulparAudio& audio)
 
             sound.first.BindData(storage.Get(std::string(pathBuffer)));
             sound.second.SetStaticBuffer(sound.first);
+            sound.second.SetRelative(false);
 
             m_dings.push_back(sound);
         }
@@ -85,6 +88,8 @@ void Zone::InitializeAudio(tulpar::TulparAudio& audio)
 
             sound.first.BindData(storage.Get(std::string(pathBuffer)));
             sound.second.SetStaticBuffer(sound.first);
+            sound.second.SetPosition({ 0, 0, 0 });
+            sound.second.SetRelative(true);
 
             m_winds.push_back(sound);
         }
@@ -298,7 +303,7 @@ void Zone::Wall::ResetEntities()
     {
         if (entity.IsValid())
         {
-            entity.AddComponent<component::LifetimeComponent>();
+            entity.AddComponent<sleipnir::ecs::component::LifetimeComponent>();
         }
     }
 }
@@ -325,14 +330,14 @@ void Zone::Deinitialize()
 
     if (nullptr != m_player.get() && m_player->IsValid())
     {
-        m_player->AddComponent<component::LifetimeComponent>();
+        m_player->AddComponent<sleipnir::ecs::component::LifetimeComponent>();
     }
 
     m_player.reset(nullptr);
 
     if (nullptr != m_floor.get() && m_floor->IsValid())
     {
-        m_floor->AddComponent<component::LifetimeComponent>();
+        m_floor->AddComponent<sleipnir::ecs::component::LifetimeComponent>();
     }
 
     m_floor.reset(nullptr);
@@ -341,7 +346,7 @@ void Zone::Deinitialize()
     {
         if (entity.IsValid())
         {
-            entity.AddComponent<component::LifetimeComponent>();
+            entity.AddComponent<sleipnir::ecs::component::LifetimeComponent>();
         }
     }
 
@@ -349,7 +354,7 @@ void Zone::Deinitialize()
     {
         if (entity.IsValid())
         {
-            entity.AddComponent<component::LifetimeComponent>();
+            entity.AddComponent<sleipnir::ecs::component::LifetimeComponent>();
         }
     }
 
@@ -359,7 +364,7 @@ void Zone::Deinitialize()
     {
         if (entity.IsValid())
         {
-            entity.AddComponent<component::LifetimeComponent>();
+            entity.AddComponent<sleipnir::ecs::component::LifetimeComponent>();
         }
     }
 
@@ -392,7 +397,7 @@ void Zone::InitializePlayer(assemblage::Factory& factory)
 
     m_sphereRadius = radiusDistribution(m_rngesus);
     m_player.reset(
-        new entity::Entity(
+        new sleipnir::ecs::entity::Entity(
             factory.CreateBox(
                 arion::Box(
                     glm::vec3{0, 1.0f, 0}
@@ -413,7 +418,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
     std::uniform_real_distribution<> radiusDistribution(0.2, 0.4);
 
     m_floor.reset(
-        new entity::Entity(
+        new sleipnir::ecs::entity::Entity(
             factory.CreatePlane(
                 arion::Plane(
                     glm::vec3{0, 0, 0}
@@ -427,7 +432,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
     static constexpr float playBorderThickness = 0.25f;
 
     // left
-    m_playArea[0] = entity::Entity(factory.CreateBox(
+    m_playArea[0] = sleipnir::ecs::entity::Entity(factory.CreateBox(
         arion::Box(
             glm::vec3{
                 -Zone::s_playArea.first
@@ -443,7 +448,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
     ));
 
     // right
-    m_playArea[1] = entity::Entity(factory.CreateBox(
+    m_playArea[1] = sleipnir::ecs::entity::Entity(factory.CreateBox(
         arion::Box(
             glm::vec3{
                 Zone::s_playArea.first
@@ -459,7 +464,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
     ));
 
     // forward
-    m_playArea[2] = entity::Entity(factory.CreateBox(
+    m_playArea[2] = sleipnir::ecs::entity::Entity(factory.CreateBox(
         arion::Box(
             glm::vec3{
                 0.0f
@@ -475,7 +480,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
     ));
 
     // back
-    m_playArea[3] = entity::Entity(factory.CreateBox(
+    m_playArea[3] = sleipnir::ecs::entity::Entity(factory.CreateBox(
         arion::Box(
             glm::vec3{
                 0.0f
@@ -492,7 +497,7 @@ void Zone::InitializeFloor(assemblage::Factory& factory)
 
     // status
     m_status.reset(
-        new entity::Entity(
+        new sleipnir::ecs::entity::Entity(
             factory.CreateBox(
                 arion::Box(
                     glm::vec3{
@@ -549,7 +554,6 @@ void Zone::InitializeHole()
         m_hole.sounds.onSuccess.second.SetPosition({ m_hole.position[0], m_hole.position[1], m_hole.position[2] });
 
         m_hole.sounds.onReset = m_winds[windDistribution(m_rngesus)];
-        m_hole.sounds.onReset.second.SetPosition({ m_hole.position[0], m_hole.position[1], m_hole.position[2] });
         m_hole.sounds.onReset.second.Play();
     }
 }
@@ -587,7 +591,7 @@ void Zone::InitializeObstacles(assemblage::Factory& factory)
     {
         double radius = radiusRange(m_rngesus);
 
-        entity::Entity obstacle = entity::Entity(factory.CreateSphere(
+        sleipnir::ecs::entity::Entity obstacle = sleipnir::ecs::entity::Entity(factory.CreateSphere(
             arion::Sphere(
                 glm::vec3{
                     xRange(m_rngesus)

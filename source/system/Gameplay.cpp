@@ -1,11 +1,8 @@
 #include "system/Gameplay.hpp"
 
-#include "entity/Entity.hpp"
-
-#include "component/PositionComponent.hpp"
-#include "component/RenderComponent.hpp"
-
-#include "system/Render.hpp"
+#include <sleipnir/ecs/component/PositionComponent.hpp>
+#include <sleipnir/ecs/component/RenderComponent.hpp>
+#include <sleipnir/ecs/entity/Entity.hpp>
 
 #include <unicorn/video/Color.hpp>
 
@@ -29,23 +26,23 @@ void Gameplay::Update()
 {
     if (!m_zone.isCompleted)
     {
-        component::RenderComponent& statusRenderComp = m_zone.GetStatus().GetComponent<component::RenderComponent>();
+        sleipnir::ecs::component::RenderComponent& statusRenderComp = m_zone.GetStatus().GetComponent<sleipnir::ecs::component::RenderComponent>();
 
         controller::Zone::Hole const& hole = m_zone.GetHole();
 
         arion::Sphere mockup(glm::vec3(0, 0, 0), glm::quat(), m_zone.GetSphereRadius());
 
-        std::vector<entity::Entity> const& spheres = m_zone.GetSpheres();
+        std::vector<sleipnir::ecs::entity::Entity> const& spheres = m_zone.GetSpheres();
 
         glm::vec3 statusColor = unicorn::video::Color::Red();
 
         if (!spheres.empty())
         {
-            for (entity::Entity sphere : spheres)
+            for (sleipnir::ecs::entity::Entity sphere : spheres)
             {
                 if (sphere.IsValid())
                 {
-                    mockup.centerOfMass = sphere.GetComponent<component::PositionComponent>().position;
+                    mockup.centerOfMass = sphere.GetComponent<sleipnir::ecs::component::PositionComponent>().position;
 
                     if (std::isnan(mockup.centerOfMass[0])
                         || std::isnan(mockup.centerOfMass[1])
@@ -73,10 +70,10 @@ void Gameplay::Update()
 
         if (statusColor != statusRenderComp.pMesh->GetMaterial()->GetColor())
         {
-            system::Render::Material* pMaterial = new system::Render::Material();
+            sleipnir::ecs::system::Render::Material* pMaterial = new sleipnir::ecs::system::Render::Material();
             pMaterial->SetColor(statusColor);
 
-            statusRenderComp.pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+            statusRenderComp.pMesh->SetMaterial(std::shared_ptr<sleipnir::ecs::system::Render::Material>(pMaterial));
         }
     }
 }

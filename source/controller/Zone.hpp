@@ -42,14 +42,14 @@ public:
     void Reset(uint64_t seed, assemblage::Factory& factory);
 
     void ResetPlayer(assemblage::Factory& factory);
-    entity::Entity GetPlayer() const { return *m_player.get(); }
-    entity::Entity GetStatus() const { return *m_status.get(); }
+    sleipnir::ecs::entity::Entity GetPlayer() const { return *m_player.get(); }
+    sleipnir::ecs::entity::Entity GetStatus() const { return *m_status.get(); }
 
     Hole const& GetHole() const { return m_hole; }
 
     double GetSphereRadius() const { return m_sphereRadius; }
-    void RegisterSphere(entity::Entity entity);
-    std::vector<entity::Entity> const& GetSpheres() const { return m_spheres; }
+    void RegisterSphere(sleipnir::ecs::entity::Entity entity);
+    std::vector<sleipnir::ecs::entity::Entity> const& GetSpheres() const { return m_spheres; }
 
     void InitializeAudio(tulpar::TulparAudio& audio);
 
@@ -59,7 +59,7 @@ private:
     friend class mule::templates::Singleton<Zone>;
 
     static constexpr float const s_boxUnit = 0.8f;
-    static constexpr std::pair<float, float> const s_playArea = std::pair<float, float>(8.0f, 4.5f);
+    static std::pair<float, float> const s_playArea;
 
     class Wall
     {
@@ -84,7 +84,7 @@ private:
     private:
         void ResetEntities();
 
-        std::vector<entity::Entity> m_entities;
+        std::vector<sleipnir::ecs::entity::Entity> m_entities;
         Data m_data;
     };
 
@@ -111,16 +111,16 @@ private:
     uint64_t m_seed;
     double m_sphereRadius;
 
-    std::unique_ptr<entity::Entity> m_player;
-    std::unique_ptr<entity::Entity> m_floor;
-    std::unique_ptr<entity::Entity> m_status;
-    std::array<entity::Entity, 4> m_playArea;
+    std::unique_ptr<sleipnir::ecs::entity::Entity> m_player;
+    std::unique_ptr<sleipnir::ecs::entity::Entity> m_floor;
+    std::unique_ptr<sleipnir::ecs::entity::Entity> m_status;
+    std::array<sleipnir::ecs::entity::Entity, 4> m_playArea;
 
     std::unique_ptr<Wall> m_wall;
     Hole m_hole;
 
-    std::vector<entity::Entity> m_spheres;
-    std::vector<entity::Entity> m_obstacles;
+    std::vector<sleipnir::ecs::entity::Entity> m_spheres;
+    std::vector<sleipnir::ecs::entity::Entity> m_obstacles;
 
     std::mt19937_64 m_rngesus;
 

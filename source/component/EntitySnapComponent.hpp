@@ -1,9 +1,8 @@
 #ifndef XANTHUS_COMPONENT_ENTITY_SNAP_COMPONENT_HPP
 #define XANTHUS_COMPONENT_ENTITY_SNAP_COMPONENT_HPP
 
-#include "entity/Entity.hpp"
-
-#include "util/Types.hpp"
+#include <sleipnir/ecs/entity/Entity.hpp>
+#include <sleipnir/ecs/Types.hpp>
 
 #include <glm/glm.hpp>
 
@@ -12,9 +11,9 @@ namespace xanthus
 namespace component
 {
 
-struct EntitySnapComponent : public Component
+struct EntitySnapComponent : public sleipnir::ecs::Component
 {
-    entity::Entity entity;
+    sleipnir::ecs::entity::Entity entity;
     glm::vec3 offset;
 };
 

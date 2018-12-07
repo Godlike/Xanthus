@@ -2,20 +2,17 @@
 
 #include "Application.hpp"
 #include "Systems.hpp"
-#include "WorldTime.hpp"
-
-#include "entity/Entity.hpp"
-#include "entity/World.hpp"
-
-#include "component/DummyComponent.hpp"
-#include "component/LifetimeComponent.hpp"
-#include "component/PhysicsComponent.hpp"
-#include "component/RenderComponent.hpp"
-#include "component/TimerComponent.hpp"
-
-#include "system/Render.hpp"
 
 #include "util/Math.hpp"
+#include "util/Types.hpp"
+
+#include <sleipnir/ecs/component/LifetimeComponent.hpp>
+#include <sleipnir/ecs/component/PhysicsComponent.hpp>
+#include <sleipnir/ecs/component/RenderComponent.hpp>
+#include <sleipnir/ecs/component/TimerComponent.hpp>
+#include <sleipnir/ecs/entity/Entity.hpp>
+#include <sleipnir/ecs/entity/World.hpp>
+#include <sleipnir/ecs/WorldTime.hpp>
 
 #include <unicorn/video/Primitives.hpp>
 
@@ -28,11 +25,12 @@ namespace xanthus
 namespace assemblage
 {
 
-Factory::Factory(WorldTime& worldTime, entity::World& world, Systems& systems)
-    : m_worldTime(worldTime)
-    , m_world(world)
-    , m_systems(systems)
-    , m_spawners(worldTime, *this, m_systems)
+Factory::Factory(sleipnir::SleipnirEngine& engine)
+    : m_worldTime(engine.GetWorldTime())
+    , m_world(engine.GetEntityWorld())
+    , m_render(engine.GetSystems().GetRender())
+    , m_physics(engine.GetSystems().GetPhysics())
+    , m_spawners(engine, *this)
 {
     orders.particleEffects.connect(this, &Factory::CreateParticleEffect);
 
@@ -47,52 +45,51 @@ void Factory::ExecuteOrders()
     orders.projectiles.emit();
 }
 
-void Factory::ReclaimEntity(entity::Entity const& entity)
+void Factory::ReclaimEntity(sleipnir::ecs::entity::Entity const& entity)
 {
-    if (entity.HasComponent<component::PhysicsComponent>())
+    if (entity.HasComponent<sleipnir::ecs::component::PhysicsComponent>())
     {
-        component::PhysicsComponent const& physicsComponent = entity.GetComponent<component::PhysicsComponent>();
-        m_systems.m_physics.DeleteGravitySource(static_cast<uint32_t>(entity.GetId()));
-        m_systems.m_physics.DeleteBody(physicsComponent.pHandle);
+        sleipnir::ecs::component::PhysicsComponent const& physicsComponent = entity.GetComponent<sleipnir::ecs::component::PhysicsComponent>();
+        m_physics.DeleteGravitySource(static_cast<uint32_t>(entity.GetId()));
+        m_physics.DeleteBody(physicsComponent.pHandle);
     }
 
-    if (entity.HasComponent<component::RenderComponent>())
+    if (entity.HasComponent<sleipnir::ecs::component::RenderComponent>())
     {
-        component::RenderComponent const& renderComponent = entity.GetComponent<component::RenderComponent>();
-        m_systems.m_render.DeleteMesh(renderComponent.pMesh);
+        sleipnir::ecs::component::RenderComponent const& renderComponent = entity.GetComponent<sleipnir::ecs::component::RenderComponent>();
+        m_render.DeleteMesh(renderComponent.pMesh);
     }
 }
 
 Factory::CustomSpawners::CustomSpawners(
-    WorldTime& worldTime
+    sleipnir::SleipnirEngine& engine
     , Factory& factory
-    , Systems& systems
 )
-    : projectile(worldTime, factory, systems.m_render)
+    : projectile(engine, factory)
 {
 
 }
 
-entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distribution<> colorDistribution, double mass, bool physics)
+sleipnir::ecs::entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distribution<> colorDistribution, double mass, bool physics)
 {
-    entity::Entity entity = m_world.CreateEntity();
+    sleipnir::ecs::entity::Entity entity = m_world.CreateEntity();
 
     // Position
     {
-        component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
+        sleipnir::ecs::component::PositionComponent& comp = entity.AddComponent<sleipnir::ecs::component::PositionComponent>();
         comp.position = box.centerOfMass;
     }
 
     // Physics
     if (physics)
     {
-        component::PhysicsComponent& comp = entity.AddComponent<component::PhysicsComponent>();
-        comp.pHandle = m_systems.m_physics.SpawnBody({
+        sleipnir::ecs::component::PhysicsComponent& comp = entity.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
+        comp.pHandle = m_physics.SpawnBody(sleipnir::ecs::system::physics::SpawnInfo {
             new arion::Box(box)
-            , glm::dvec3(0.0)
+            , glm::vec3(0.0)
             , mass
             , 0.2f
-            , Force::Down
+            // , Force::Down
         });
     }
 
@@ -103,10 +100,10 @@ entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distr
         std::random_device rd;
         std::mt19937 randEngine(rd());
 
-        system::Render::Material* pMaterial = new system::Render::Material();
+        sleipnir::ecs::system::Render::Material* pMaterial = new sleipnir::ecs::system::Render::Material();
         pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
+        sleipnir::ecs::system::Render::Mesh* pMesh = m_render.SpawnMesh();
         Primitives::Box(*pMesh);
 
         pMesh->Scale(glm::vec3(
@@ -115,33 +112,33 @@ entity::Entity Factory::CreateBox(arion::Box const& box, std::uniform_real_distr
             , glm::length(box.kAxis) * 2.0f
         )); // scale to desired size
 
-        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+        pMesh->SetMaterial(std::shared_ptr<sleipnir::ecs::system::Render::Material>(pMaterial));
 
         //! @todo   remove the following call when Unicorn#120 is resolved
-        m_systems.m_render.AddMesh(pMesh);
+        m_render.AddMesh(pMesh);
 
-        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        sleipnir::ecs::component::RenderComponent& renderComp = entity.AddComponent<sleipnir::ecs::component::RenderComponent>();
         renderComp.pMesh = pMesh;
     }
 
     return entity;
 }
 
-entity::Entity Factory::CreateSphere(arion::Sphere const& sphere)
+sleipnir::ecs::entity::Entity Factory::CreateSphere(arion::Sphere const& sphere)
 {
     WorldTime::TimeUnit now = m_worldTime.GetTime();
 
-    entity::Entity entity = m_world.CreateEntity();
+    sleipnir::ecs::entity::Entity entity = m_world.CreateEntity();
 
     // Position
     {
-        component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
+        sleipnir::ecs::component::PositionComponent& comp = entity.AddComponent<sleipnir::ecs::component::PositionComponent>();
         comp.position = sphere.centerOfMass;
     }
 
     // Lifetime
     {
-        component::LifetimeComponent& lifetimeComponent = entity.AddComponent<component::LifetimeComponent>();
+        sleipnir::ecs::component::LifetimeComponent& lifetimeComponent = entity.AddComponent<sleipnir::ecs::component::LifetimeComponent>();
         lifetimeComponent.deadline = now + std::chrono::seconds(10);
     }
 
@@ -154,43 +151,43 @@ entity::Entity Factory::CreateSphere(arion::Sphere const& sphere)
 
         std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
 
-        system::Render::Material* pMaterial = new system::Render::Material();
+        sleipnir::ecs::system::Render::Material* pMaterial = new sleipnir::ecs::system::Render::Material();
         pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
+        sleipnir::ecs::system::Render::Mesh* pMesh = m_render.SpawnMesh();
         Primitives::Sphere(*pMesh, sphere.radius, 32, 32);
 
-        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+        pMesh->SetMaterial(std::shared_ptr<sleipnir::ecs::system::Render::Material>(pMaterial));
 
         //! @todo   remove the following call when Unicorn#120 is resolved
-        m_systems.m_render.AddMesh(pMesh);
+        m_render.AddMesh(pMesh);
 
-        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        sleipnir::ecs::component::RenderComponent& renderComp = entity.AddComponent<sleipnir::ecs::component::RenderComponent>();
         renderComp.pMesh = pMesh;
     }
 
     return entity;
 }
 
-entity::Entity Factory::CreatePlane(arion::Plane const& plane)
+sleipnir::ecs::entity::Entity Factory::CreatePlane(arion::Plane const& plane)
 {
-    entity::Entity entity = m_world.CreateEntity();
+    sleipnir::ecs::entity::Entity entity = m_world.CreateEntity();
 
     // Position
     {
-        component::PositionComponent& comp = entity.AddComponent<component::PositionComponent>();
+        sleipnir::ecs::component::PositionComponent& comp = entity.AddComponent<sleipnir::ecs::component::PositionComponent>();
         comp.position = plane.centerOfMass;
     }
 
     // Physics
     {
-        component::PhysicsComponent& comp = entity.AddComponent<component::PhysicsComponent>();
-        comp.pHandle = m_systems.m_physics.SpawnBody({
+        sleipnir::ecs::component::PhysicsComponent& comp = entity.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
+        comp.pHandle = m_physics.SpawnBody({
             new arion::Plane(plane)
-            , glm::dvec3(0.0)
+            , glm::vec3(0.0)
             , std::numeric_limits<double>::quiet_NaN()
             , 0.0f
-            , Force::Down
+            // , Force::Down
         });
     }
 
@@ -205,51 +202,52 @@ entity::Entity Factory::CreatePlane(arion::Plane const& plane)
 
         std::uniform_real_distribution<> colorDistribution(0.8, 1.0);
 
-        system::Render::Material* pMaterial = new system::Render::Material();
+        sleipnir::ecs::system::Render::Material* pMaterial = new sleipnir::ecs::system::Render::Material();
         pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-        system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
+        sleipnir::ecs::system::Render::Mesh* pMesh = m_render.SpawnMesh();
         Primitives::Quad(*pMesh);
 
         pMesh->Scale(glm::vec3(planeScale, planeScale, 0.0f));
         pMesh->Rotate(
-            std::acos(glm::dot(glm::dvec3(0, 0, 1), plane.normal))
-            , glm::cross(glm::dvec3(0, 0, 1), plane.normal)
+            std::acos(glm::dot(glm::vec3(0, 0, 1), plane.normal))
+            , glm::cross(glm::vec3(0, 0, 1), plane.normal)
         );
 
-        pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+        pMesh->SetMaterial(std::shared_ptr<sleipnir::ecs::system::Render::Material>(pMaterial));
 
         //! @todo   remove the following call when Unicorn#120 is resolved
-        m_systems.m_render.AddMesh(pMesh);
+        m_render.AddMesh(pMesh);
 
-        component::RenderComponent& renderComp = entity.AddComponent<component::RenderComponent>();
+        sleipnir::ecs::component::RenderComponent& renderComp = entity.AddComponent<sleipnir::ecs::component::RenderComponent>();
         renderComp.pMesh = pMesh;
     }
 
     return entity;
 }
 
-void Factory::ApplySpherePhysics(entity::Entity sphere, double radius, Orders::ParticleEffect impulse)
+void Factory::ApplySpherePhysics(sleipnir::ecs::entity::Entity sphere, double radius, Orders::ParticleEffect impulse)
 {
-    component::PhysicsComponent& comp = sphere.AddComponent<component::PhysicsComponent>();
+    sleipnir::ecs::component::PhysicsComponent& comp = sphere.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
 
-    Force force = Force::Down;
+    // Force force = Force::Down;
 
     switch (impulse.type)
     {
         case Orders::ParticleEffect::Type::Up:
         {
-            force = Force::Up;
+            // force = Force::Up;
+            break;
         }
         case Orders::ParticleEffect::Type::Down:
         default:
         {
-            force = Force::Down;
+            // force = Force::Down;
             break;
         }
     }
 
-    comp.pHandle = m_systems.m_physics.SpawnBody({
+    comp.pHandle = m_physics.SpawnBody({
         new arion::Sphere(impulse.position
             , glm::quat()
             , radius
@@ -257,33 +255,33 @@ void Factory::ApplySpherePhysics(entity::Entity sphere, double radius, Orders::P
         , impulse.velocity
         , (radius * radius * radius) * 4.18879020479
         , 0.9f
-        , force
+        // , force
     });
 }
 
-void Factory::ApplyGravitySource(entity::Entity sphere, double radius, double magnitude)
+void Factory::ApplyGravitySource(sleipnir::ecs::entity::Entity sphere, double radius, double magnitude)
 {
-    if (sphere.HasComponent<component::LifetimeComponent>())
+    if (sphere.HasComponent<sleipnir::ecs::component::LifetimeComponent>())
     {
-        sphere.DeleteComponent<component::LifetimeComponent>();
+        sphere.DeleteComponent<sleipnir::ecs::component::LifetimeComponent>();
     }
 
-    component::PositionComponent& posComp = sphere.GetComponent<component::PositionComponent>();
-    component::PhysicsComponent& comp = sphere.AddComponent<component::PhysicsComponent>();
+    sleipnir::ecs::component::PositionComponent& posComp = sphere.GetComponent<sleipnir::ecs::component::PositionComponent>();
+    sleipnir::ecs::component::PhysicsComponent& comp = sphere.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
 
-    comp.pHandle = m_systems.m_physics.SpawnBody({
+    comp.pHandle = m_physics.SpawnBody({
         new arion::Sphere(posComp.position
             , glm::quat()
             , radius
         )
-        , glm::dvec3(0)
+        , glm::vec3(0)
         , std::numeric_limits<double>::quiet_NaN()
         , 1.0
-        , Force::Count
+        // , Force::Count
     });
 
     {
-        component::RenderComponent& renderComp = sphere.GetComponent<component::RenderComponent>();
+        sleipnir::ecs::component::RenderComponent& renderComp = sphere.GetComponent<sleipnir::ecs::component::RenderComponent>();
 
         glm::vec3 color(0);
         static constexpr double const maxMagnitude = 100.0;
@@ -302,7 +300,7 @@ void Factory::ApplyGravitySource(entity::Entity sphere, double radius, double ma
 
     if (0 != magnitude)
     {
-        m_systems.m_physics.CreateGravitySource(
+        m_physics.CreateGravitySource(
             static_cast<uint32_t>(sphere.GetId())
             , posComp.position
             , magnitude
@@ -322,30 +320,30 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
     std::uniform_real_distribution<> colorDistribution(0.0, 1.0);
     std::uniform_real_distribution<> velocityDistribution(-5.0, 5.0);
 
-    entity::World::Entities entities = m_world.CreateEntities(order.count);
+    sleipnir::ecs::entity::World::Entities entities = m_world.CreateEntities(order.count);
 
     for (uint16_t i = 0; i < order.count; ++i)
     {
-        double const side = sizeDistribution(randEngine);
+        float const side = sizeDistribution(randEngine);
         glm::vec3 posShift = util::math::randvec3(posDistribution, randEngine);
         glm::vec3 pos = order.position + posShift;
 
         // Position
         {
-            component::PositionComponent& positionComponent = entities[i].AddComponent<component::PositionComponent>();
+            sleipnir::ecs::component::PositionComponent& positionComponent = entities[i].AddComponent<sleipnir::ecs::component::PositionComponent>();
             positionComponent.position = pos;
         }
 
         // Lifetime
         {
-            component::LifetimeComponent& lifetimeComponent = entities[i].AddComponent<component::LifetimeComponent>();
+            sleipnir::ecs::component::LifetimeComponent& lifetimeComponent = entities[i].AddComponent<sleipnir::ecs::component::LifetimeComponent>();
             lifetimeComponent.deadline = now + order.ttl;
         }
 
         // Physics
         {
             arion::SimpleShape* pShape = nullptr;
-            Force force = Force::Down;
+            // Force force = Force::Down;
 
             switch (order.type)
             {
@@ -353,11 +351,11 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 {
                     pShape = new arion::Box(pos
                         , glm::quat()
-                        , glm::dvec3{1, 0, 0} * side
-                        , glm::dvec3{0, 1, 0} * side
-                        , glm::dvec3{0, 0, 1} * side
+                        , glm::vec3{1, 0, 0} * side
+                        , glm::vec3{0, 1, 0} * side
+                        , glm::vec3{0, 0, 1} * side
                     );
-                    force = Force::Up;
+                    // force = Force::Up;
                 }
                 case Orders::ParticleEffect::Type::Down:
                 default:
@@ -367,13 +365,13 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
                 }
             }
 
-            component::PhysicsComponent& physicsComponent = entities[i].AddComponent<component::PhysicsComponent>();
-            physicsComponent.pHandle = m_systems.m_physics.SpawnBody({
+            sleipnir::ecs::component::PhysicsComponent& physicsComponent = entities[i].AddComponent<sleipnir::ecs::component::PhysicsComponent>();
+            physicsComponent.pHandle = m_physics.SpawnBody({
                 pShape
                 , util::math::randvec3(velocityDistribution, randEngine) + order.velocity
                 , side
                 , 0.98f
-                , force
+                // , force
             });
         }
 
@@ -381,10 +379,10 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
         {
             using unicorn::video::Primitives;
 
-            system::Render::Material* pMaterial = new system::Render::Material();
+            sleipnir::ecs::system::Render::Material* pMaterial = new sleipnir::ecs::system::Render::Material();
             pMaterial->SetColor(util::math::randvec3(colorDistribution, randEngine));
 
-            system::Render::Mesh* pMesh = m_systems.m_render.SpawnMesh();
+            sleipnir::ecs::system::Render::Mesh* pMesh = m_render.SpawnMesh();
 
             switch (order.type)
             {
@@ -419,12 +417,12 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             });
             pMesh->UpdateTransformMatrix();
 
-            pMesh->SetMaterial(std::shared_ptr<system::Render::Material>(pMaterial));
+            pMesh->SetMaterial(std::shared_ptr<sleipnir::ecs::system::Render::Material>(pMaterial));
 
             //! @todo   remove the following call when Unicorn#120 is resolved
-            m_systems.m_render.AddMesh(pMesh);
+            m_render.AddMesh(pMesh);
 
-            component::RenderComponent& renderComp = entities[i].AddComponent<component::RenderComponent>();
+            sleipnir::ecs::component::RenderComponent& renderComp = entities[i].AddComponent<sleipnir::ecs::component::RenderComponent>();
             renderComp.pMesh = pMesh;
         }
     }

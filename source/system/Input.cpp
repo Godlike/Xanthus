@@ -1,17 +1,16 @@
 #include "system/Input.hpp"
 
-#include "WorldTime.hpp"
-
 #include "assemblage/Factory.hpp"
 
 #include "controller/Zone.hpp"
 
-#include "component/PositionComponent.hpp"
+#include "component/ControlComponent.hpp"
 
-#include "system/Time.hpp"
-#include "system/Render.hpp"
+#include <sleipnir/ecs/component/PositionComponent.hpp>
 
 #include <unicorn/video/Graphics.hpp>
+
+#include <sleipnir/ecs/WorldTime.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
@@ -26,14 +25,13 @@ namespace system
 
 Input::Input(unicorn::UnicornRender& render
     , WorldTime& worldTime
-    , Time& timeSystem
-    , Render& renderSystem
+    , sleipnir::ecs::Systems& systems
     , assemblage::Factory& factory
 )
     : m_unicornRender(render)
     , m_worldTime(worldTime)
-    , m_timeSystem(timeSystem)
-    , m_renderSystem(renderSystem)
+    , m_timeSystem(systems.GetTime())
+    , m_renderSystem(systems.GetRender())
     , m_factory(factory)
 {
 
@@ -90,9 +88,9 @@ void Input::Update()
         assert(nullptr != m_renderSystem.pCameraController);
 
         controller::Zone& zone = controller::Zone::Instance();
-        entity::Entity player = zone.GetPlayer();
+        sleipnir::ecs::entity::Entity player = zone.GetPlayer();
 
-        glm::vec3 playerPosition = player.GetComponent<component::PositionComponent>().position;
+        glm::vec3 playerPosition = player.GetComponent<sleipnir::ecs::component::PositionComponent>().position;
 
         glm::vec3 playerForce{0, 0, 0};
         glm::vec3 cameraTranslation = m_renderSystem.pCameraController->GetTranslation();
@@ -106,14 +104,18 @@ void Input::Update()
             {
                 case Key::Num_Add:
                 {
-                    m_timeSystem.factor /= timeFactorMultuplier;
-                    std::cerr << "Time\tfactor " << m_timeSystem.factor << std::endl;
+                    float factor = m_timeSystem.GetFactor() / timeFactorMultuplier;
+
+                    m_timeSystem.SetFactor(factor);
+                    std::cerr << "Time\tfactor " << factor << std::endl;
                     break;
                 }
                 case Key::Num_Subtract:
                 {
-                    m_timeSystem.factor *= timeFactorMultuplier;
-                    std::cerr << "Time\tfactor " << m_timeSystem.factor << std::endl;
+                    float factor = m_timeSystem.GetFactor() * timeFactorMultuplier;
+
+                    m_timeSystem.SetFactor(factor);
+                    std::cerr << "Time\tfactor " << factor << std::endl;
                     break;
                 }
 
@@ -190,13 +192,13 @@ void Input::Update()
                 }
                 case Key::Space:
                 {
-                    component::PositionComponent& comp = player.GetComponent<component::PositionComponent>();
+                    sleipnir::ecs::component::PositionComponent& comp = player.GetComponent<sleipnir::ecs::component::PositionComponent>();
 
                     glm::vec3 direction = m_renderSystem.pCameraController->GetDirection();
 
                     direction += glm::vec3{1, 0, 1} * playerForce;
 
-                    entity::Entity sphere = m_factory.CreateSphere(arion::Sphere(
+                    sleipnir::ecs::entity::Entity sphere = m_factory.CreateSphere(arion::Sphere(
                         comp.position + glm::vec3(0, 1, 0) * cameraY
                         , glm::quat()
                         , zone.GetSphereRadius()
