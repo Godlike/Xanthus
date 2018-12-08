@@ -21,6 +21,7 @@
 #include <spdlog/sinks/file_sinks.h>
 
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -52,6 +53,8 @@ int main(int argc, char* argv[])
     if (engine.Initialize(config))
     {
         xanthus::Application app(engine);
+
+        config.lifetime.reclaimer = std::bind(&xanthus::assemblage::Factory::ReclaimEntity, &app.GetFactory(), std::placeholders::_1);
 
         app.Run();
     }

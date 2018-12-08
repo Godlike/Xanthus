@@ -24,6 +24,8 @@ public:
     Application(sleipnir::SleipnirEngine& engine);
     ~Application();
 
+    assemblage::Factory& GetFactory() { return m_factory; }
+
     void Run();
 
 private:

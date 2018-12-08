@@ -27,9 +27,11 @@ Application::~Application()
 
 void Application::Run()
 {
+    m_engine.InitializeBuiltInSystems();
+
     controller::Zone::Instance().Reset(0x1337, m_factory);
 
-    m_engine.GetRender().Run();
+    m_engine.Run();
 }
 
 void Application::OnLogicFrame(unicorn::UnicornRender* /*render*/)
