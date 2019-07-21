@@ -10,6 +10,7 @@
 #include <Arion/Shape.hpp>
 
 #include <sleipnir/ecs/system/physics/Physics.hpp>
+#include <sleipnir/ecs/system/physics/Primitives.hpp>
 #include <sleipnir/ecs/system/Render.hpp>
 #include <sleipnir/SleipnirEngine.hpp>
 
@@ -95,7 +96,7 @@ private:
     sleipnir::ecs::entity::World& m_world;
 
     sleipnir::ecs::system::Render& m_render;
-    sleipnir::ecs::system::physics::Physics& m_physics;
+    sleipnir::ecs::system::physics::BodyChanges::Instance m_physicsBodyChanges;
 
     CustomSpawners m_spawners;
 };

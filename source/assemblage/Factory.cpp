@@ -29,7 +29,7 @@ Factory::Factory(sleipnir::SleipnirEngine& engine)
     : m_worldTime(engine.GetWorldTime())
     , m_world(engine.GetEntityWorld())
     , m_render(engine.GetSystems().GetRender())
-    , m_physics(engine.GetSystems().GetPhysics())
+    , m_physicsBodyChanges(engine.GetSystems().GetPhysics().CloneBodyChanges())
     , m_spawners(engine, *this)
 {
     orders.particleEffects.connect(this, &Factory::CreateParticleEffect);
@@ -43,6 +43,8 @@ void Factory::ExecuteOrders()
 {
     orders.particleEffects.emit();
     orders.projectiles.emit();
+
+    m_physicsBodyChanges.Push(m_worldTime.GetTime());
 }
 
 void Factory::ReclaimEntity(sleipnir::ecs::entity::Entity const& entity)
@@ -50,8 +52,9 @@ void Factory::ReclaimEntity(sleipnir::ecs::entity::Entity const& entity)
     if (entity.HasComponent<sleipnir::ecs::component::PhysicsComponent>())
     {
         sleipnir::ecs::component::PhysicsComponent const& physicsComponent = entity.GetComponent<sleipnir::ecs::component::PhysicsComponent>();
-        m_physics.DeleteGravitySource(static_cast<uint32_t>(entity.GetId()));
-        m_physics.DeleteBody(physicsComponent.pHandle);
+        // m_physics.DeleteGravitySource(static_cast<uint32_t>(entity.GetId()));
+        // m_physics.DeleteBody(physicsComponent.pHandle);
+        m_physicsBodyChanges.Delete(physicsComponent.pHandle);
     }
 
     if (entity.HasComponent<sleipnir::ecs::component::RenderComponent>())
@@ -84,13 +87,18 @@ sleipnir::ecs::entity::Entity Factory::CreateBox(arion::Box const& box, std::uni
     if (physics)
     {
         sleipnir::ecs::component::PhysicsComponent& comp = entity.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
-        comp.pHandle = m_physics.SpawnBody(sleipnir::ecs::system::physics::SpawnInfo {
-            new arion::Box(box)
-            , glm::vec3(0.0)
-            , mass
-            , 0.2f
-            // , Force::Down
-        });
+
+        sleipnir::ecs::system::physics::BodyMemento memento;
+        memento.pShape = new arion::Box(box);
+
+        sleipnir::ecs::system::physics::BodyMemento::LinearMotion linear;
+        linear.position = box.centerOfMass;
+
+        memento.linear = {true, linear};
+        memento.mass = {true, mass};
+        memento.damping = {true, 0.2f};
+
+        comp.pHandle = m_physicsBodyChanges.Add(memento);
     }
 
     // Render
@@ -182,13 +190,18 @@ sleipnir::ecs::entity::Entity Factory::CreatePlane(arion::Plane const& plane)
     // Physics
     {
         sleipnir::ecs::component::PhysicsComponent& comp = entity.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
-        comp.pHandle = m_physics.SpawnBody({
-            new arion::Plane(plane)
-            , glm::vec3(0.0)
-            , std::numeric_limits<double>::quiet_NaN()
-            , 0.0f
-            // , Force::Down
-        });
+
+        sleipnir::ecs::system::physics::BodyMemento memento;
+        memento.pShape = new arion::Plane(plane);
+
+        sleipnir::ecs::system::physics::BodyMemento::LinearMotion linear;
+        linear.position = plane.centerOfMass;
+
+        memento.linear = {true, linear};
+        memento.mass = {true, std::numeric_limits<double>::quiet_NaN()};
+        memento.damping = {true, 0.0f};
+
+        comp.pHandle = m_physicsBodyChanges.Add(memento);
     }
 
     // Render
@@ -247,16 +260,20 @@ void Factory::ApplySpherePhysics(sleipnir::ecs::entity::Entity sphere, double ra
         }
     }
 
-    comp.pHandle = m_physics.SpawnBody({
-        new arion::Sphere(impulse.position
+    sleipnir::ecs::system::physics::BodyMemento memento;
+    memento.pShape = new arion::Sphere(impulse.position
             , glm::quat()
             , radius
-        )
-        , impulse.velocity
-        , (radius * radius * radius) * 4.18879020479
-        , 0.9f
-        // , force
-    });
+        );
+
+    sleipnir::ecs::system::physics::BodyMemento::LinearMotion linear;
+    linear.velocity = impulse.velocity;
+
+    memento.linear = {true, linear};
+    memento.mass = {true, (radius * radius * radius) * 4.18879020479};
+    memento.damping = {true, 0.9f};
+
+    comp.pHandle = m_physicsBodyChanges.Add(memento);
 }
 
 void Factory::ApplyGravitySource(sleipnir::ecs::entity::Entity sphere, double radius, double magnitude)
@@ -269,16 +286,20 @@ void Factory::ApplyGravitySource(sleipnir::ecs::entity::Entity sphere, double ra
     sleipnir::ecs::component::PositionComponent& posComp = sphere.GetComponent<sleipnir::ecs::component::PositionComponent>();
     sleipnir::ecs::component::PhysicsComponent& comp = sphere.AddComponent<sleipnir::ecs::component::PhysicsComponent>();
 
-    comp.pHandle = m_physics.SpawnBody({
-        new arion::Sphere(posComp.position
+    sleipnir::ecs::system::physics::BodyMemento memento;
+    memento.pShape = new arion::Sphere(posComp.position
             , glm::quat()
             , radius
-        )
-        , glm::vec3(0)
-        , std::numeric_limits<double>::quiet_NaN()
-        , 1.0
-        // , Force::Count
-    });
+        );
+
+    sleipnir::ecs::system::physics::BodyMemento::LinearMotion linear;
+    linear.position = posComp.position;
+
+    memento.linear = {true, linear};
+    memento.mass = {true, std::numeric_limits<double>::quiet_NaN()};
+    memento.damping = {true, 1.0f};
+
+    comp.pHandle = m_physicsBodyChanges.Add(memento);
 
     {
         sleipnir::ecs::component::RenderComponent& renderComp = sphere.GetComponent<sleipnir::ecs::component::RenderComponent>();
@@ -300,11 +321,11 @@ void Factory::ApplyGravitySource(sleipnir::ecs::entity::Entity sphere, double ra
 
     if (0 != magnitude)
     {
-        m_physics.CreateGravitySource(
-            static_cast<uint32_t>(sphere.GetId())
-            , posComp.position
-            , magnitude
-        );
+        // m_physics.CreateGravitySource(
+        //     static_cast<uint32_t>(sphere.GetId())
+        //     , posComp.position
+        //     , magnitude
+        // );
     }
 }
 
@@ -366,13 +387,18 @@ void Factory::CreateParticleEffect(Orders::ParticleEffect const& order)
             }
 
             sleipnir::ecs::component::PhysicsComponent& physicsComponent = entities[i].AddComponent<sleipnir::ecs::component::PhysicsComponent>();
-            physicsComponent.pHandle = m_physics.SpawnBody({
-                pShape
-                , util::math::randvec3(velocityDistribution, randEngine) + order.velocity
-                , side
-                , 0.98f
-                // , force
-            });
+
+            sleipnir::ecs::system::physics::BodyMemento memento;
+            memento.pShape = pShape;
+
+            sleipnir::ecs::system::physics::BodyMemento::LinearMotion linear;
+            linear.velocity = util::math::randvec3(velocityDistribution, randEngine) + order.velocity;
+
+            memento.linear = {true, linear};
+            memento.mass = {true, side};
+            memento.damping = {true, 0.98f};
+
+            physicsComponent.pHandle = m_physicsBodyChanges.Add(memento);
         }
 
         // Render
