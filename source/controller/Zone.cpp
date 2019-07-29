@@ -408,6 +408,7 @@ void Zone::InitializePlayer(assemblage::Factory& factory)
                 )
                 , std::uniform_real_distribution<>(0, 0)
                 , 1.0f
+                , true
             )
         )
     );

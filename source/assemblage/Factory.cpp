@@ -267,6 +267,7 @@ void Factory::ApplySpherePhysics(sleipnir::ecs::entity::Entity sphere, double ra
         );
 
     sleipnir::ecs::system::physics::BodyMemento::LinearMotion linear;
+    linear.position = impulse.position;
     linear.velocity = impulse.velocity;
 
     memento.linear = {true, linear};

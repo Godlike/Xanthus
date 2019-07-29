@@ -4,8 +4,7 @@
 
 #include "controller/Zone.hpp"
 
-#include "component/ControlComponent.hpp"
-
+#include <sleipnir/ecs/component/ControlComponent.hpp>
 #include <sleipnir/ecs/component/PositionComponent.hpp>
 
 #include <unicorn/video/Graphics.hpp>
@@ -160,7 +159,7 @@ void Input::Update()
 
         if (0 != glm::length2(playerForce))
         {
-            component::ControlComponent& comp = player.AddComponent<component::ControlComponent>();
+            sleipnir::ecs::component::ControlComponent& comp = player.AddComponent<sleipnir::ecs::component::ControlComponent>();
             comp.force = glm::vec3{1, 0, 1} * playerForce;
         }
 
